@@ -1,1 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>hi</title>
+  <style>
+    body {
+      background: #f7f7f7;
+      color: #000;
+      font-family: monospace;
+      padding: 2rem;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
 loadstring(game:HttpGet("https://raw.githubusercontent.com/scripture2025/FTAP/refs/heads/main/ScriptLoader"))()
+</body>
+</html>
