@@ -52,7 +52,7 @@
 
 <div id="panel">
   <h1>Paste your Lua script here:</h1>
-  <textarea id="scriptInput" placeholder='print("hello world")'></textarea>
+  <textarea id="scriptInput" placeholder='Write your code here...'></textarea>
   <button id="generateBtn">Generate Raw URL</button>
   <div id="link"></div>
 </div>
@@ -86,19 +86,13 @@
     document.documentElement.appendChild(textNode);
   }
 
-  // Parse URL path to get raw id
-  function getRawIDFromPath() {
-    // Example path: /sc8bj6
-    const path = window.location.pathname;
-    const parts = path.split("/");
-    if (parts.length === 2 && parts[1]) {
-      return parts[1];
-    }
-    return null;
+  // Get raw ID from URL hash (after #)
+  function getRawIDFromHash() {
+    return window.location.hash ? window.location.hash.substring(1) : null;
   }
 
   function main() {
-    const rawID = getRawIDFromPath();
+    const rawID = getRawIDFromHash();
 
     if (rawID) {
       // RAW page: show only raw script text or error if none
@@ -124,7 +118,7 @@
       const id = generateID();
       saveScript(id, script);
 
-      const rawURL = window.location.origin + "/" + id;
+      const rawURL = window.location.origin + window.location.pathname + "#" + id;
       linkDiv.innerHTML = `Raw URL:<br><a href="${rawURL}" target="_blank" rel="noopener">${rawURL}</a>`;
 
       // Optionally update URL (not required)
