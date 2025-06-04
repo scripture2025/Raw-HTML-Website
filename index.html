@@ -33,7 +33,6 @@
     border-radius: 8px;
     resize: vertical;
     font-family: monospace;
-    white-space: pre-wrap;
   }
   button {
     margin-top: 1rem;
@@ -56,7 +55,7 @@
 <body>
 
 <header id="header">Create a new paste</header>
-<textarea id="pasteInput" placeholder="Write or paste your text/code here... (Perm)"></textarea>
+<textarea id="pasteInput" placeholder="Write or paste your text/code here... (Best Pastebin)"></textarea>
 <button id="saveBtn">Save Paste & Get Raw Link</button>
 <div id="link"></div>
 
@@ -66,42 +65,33 @@
   const saveBtn = document.getElementById('saveBtn');
   const linkDiv = document.getElementById('link');
 
+  // Generate a short random ID for each paste
   function generatePasteID() {
     return Math.random().toString(36).substring(2, 8);
   }
 
+  // Save paste content to localStorage with ID
   function savePaste(content) {
     const id = generatePasteID();
     localStorage.setItem("paste_" + id, content);
     return id;
   }
 
+  // Retrieve paste content by ID from localStorage
   function getPaste(id) {
     return localStorage.getItem("paste_" + id);
   }
 
+  // Show ONLY the raw text content of the paste — no HTML, no tags, nothing
   function showRawTextOnly(content) {
-    // Clear the entire document content
+    // Clear the entire document (html and body)
     document.documentElement.innerHTML = '';
 
-    // Set the textContent of <html> directly to raw content, no HTML tags
-    // This will display only raw text with no html or body tags
-    document.documentElement.textContent = content;
-    
-    // Styling so background and font color still look nice
-    // Since documentElement.style doesn't work well after clearing html,
-    // use body styling fallback:
-    const style = document.createElement('style');
-    style.textContent = `
-      html {
-        background: #121212;
-        color: #eee;
-        font-family: monospace;
-        white-space: pre-wrap;
-        margin: 1rem;
-      }
-    `;
-    document.documentElement.appendChild(style);
+    // Create a single text node with the paste content
+    const textNode = document.createTextNode(content);
+
+    // Append it directly to the <html> element (document.documentElement)
+    document.documentElement.appendChild(textNode);
   }
 
   function main() {
@@ -111,12 +101,15 @@
       if (content !== null) {
         showRawTextOnly(content);
       } else {
-        document.body.innerHTML = "<p style='color:#f55; font-family: monospace; text-align:center; margin-top: 2rem;'>Paste not found or expired.</p>";
+        // Paste not found: show minimal error message
+        document.documentElement.innerHTML = '';
+        const errText = document.createTextNode("Paste not found or expired.");
+        document.documentElement.appendChild(errText);
       }
-      return; // Do not show create UI
+      return; // Don't show UI when showing paste raw text
     }
 
-    // Show create UI
+    // Show paste creation UI
     saveBtn.onclick = () => {
       const text = pasteInput.value.trim();
       if (!text) {
@@ -126,7 +119,6 @@
       const id = savePaste(text);
       const rawLink = location.origin + location.pathname + "#" + id;
       linkDiv.innerHTML = `Paste saved! Share this raw link:<br><a href="${rawLink}" target="_blank" rel="noopener">${rawLink}</a>`;
-      // Update URL to the raw paste
       history.replaceState(null, '', '#' + id);
     };
   }
