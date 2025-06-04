@@ -55,12 +55,11 @@
 <body>
 
 <header id="header">Create a new paste</header>
-<textarea id="pasteInput" placeholder="Write or paste your text/code here..."></textarea>
+<textarea id="pasteInput" placeholder="Write or paste your text/code here... (Permanent Raw Links)"></textarea>
 <button id="saveBtn">Save Paste & Get Raw Link</button>
 <div id="link"></div>
 
 <script>
-  const header = document.getElementById('header');
   const pasteInput = document.getElementById('pasteInput');
   const saveBtn = document.getElementById('saveBtn');
   const linkDiv = document.getElementById('link');
@@ -80,16 +79,9 @@
   }
 
   function showRawTextOnly(content) {
-    // Clear all existing HTML and replace with raw text only:
+    // Clear entire page and replace with only raw text content
     document.documentElement.innerHTML = '';
-    // Put raw content as text node on documentElement to avoid HTML parsing:
     document.documentElement.textContent = content;
-    // For background and text color on blank page:
-    document.documentElement.style.background = '#121212';
-    document.documentElement.style.color = '#eee';
-    document.documentElement.style.fontFamily = 'monospace';
-    document.documentElement.style.margin = '1rem';
-    // No HTML tags, just raw text content
   }
 
   function main() {
@@ -101,10 +93,10 @@
       } else {
         document.body.innerHTML = "<p style='color:#f55; font-family: monospace; text-align:center; margin-top: 2rem;'>Paste not found or expired.</p>";
       }
-      return; // Skip UI creation
+      return; // Do not show create UI
     }
 
-    // UI for creating paste
+    // Show create UI
     saveBtn.onclick = () => {
       const text = pasteInput.value.trim();
       if (!text) {
@@ -114,7 +106,6 @@
       const id = savePaste(text);
       const rawLink = location.origin + location.pathname + "#" + id;
       linkDiv.innerHTML = `Paste saved! Share this raw link:<br><a href="${rawLink}" target="_blank" rel="noopener">${rawLink}</a>`;
-      // Update URL for bookmark
       history.replaceState(null, '', '#' + id);
     };
   }
