@@ -3,36 +3,32 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Raw Pastebin - Create</title>
+<title>Raw Script Generator</title>
 <style>
-  body {
+  html, body {
+    margin: 0; padding: 2rem;
     background: #121212;
     color: #eee;
     font-family: monospace;
-    margin: 0;
-    padding: 1rem;
+    height: 100vh;
+  }
+  #panel {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    min-height: 100vh;
-  }
-  header {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-    color: #3a86ff;
+    max-width: 900px;
+    margin: auto;
   }
   textarea {
-    width: 90vw;
-    max-width: 900px;
-    height: 300px;
+    width: 100%;
+    height: 250px;
     background: #181818;
     color: #eee;
     border: none;
     padding: 1rem;
     font-size: 1rem;
     border-radius: 8px;
-    resize: vertical;
     font-family: monospace;
+    resize: vertical;
   }
   button {
     margin-top: 1rem;
@@ -43,10 +39,10 @@
     border-radius: 6px;
     cursor: pointer;
     font-size: 1rem;
+    align-self: flex-start;
   }
   #link {
     margin-top: 1rem;
-    max-width: 900px;
     word-break: break-word;
     color: #aaf;
   }
@@ -54,36 +50,55 @@
 </head>
 <body>
 
-<header id="header">Create a new paste</header>
-<textarea id="pasteInput" placeholder="Write or paste your text/code here... (real)"></textarea>
-<button id="saveBtn">Save Paste & Get Raw Link</button>
-<div id="link"></div>
+<div id="panel">
+  <h1>Paste your Lua script here:</h1>
+  <textarea id="scriptInput" placeholder='print("hello world")'></textarea>
+  <button id="generateBtn">Generate Raw URL</button>
+  <div id="link"></div>
+</div>
 
 <script>
-  const pasteInput = document.getElementById('pasteInput');
-  const saveBtn = document.getElementById('saveBtn');
+  const panel = document.getElementById('panel');
+  const scriptInput = document.getElementById('scriptInput');
+  const generateBtn = document.getElementById('generateBtn');
   const linkDiv = document.getElementById('link');
 
-  function generatePasteID() {
-    return Math.random().toString(36).substring(2, 8);
+  function showRawOnly(script) {
+    // Clear the entire document content and write only raw text with no tags
+    document.documentElement.innerHTML = '';
+    // Create a text node with the script, no HTML wrapper
+    const textNode = document.createTextNode(script);
+    document.documentElement.appendChild(textNode);
   }
 
-  function savePaste(content) {
-    const id = generatePasteID();
-    localStorage.setItem("paste_" + id, content);
-    return id;
-  }
-
-  saveBtn.onclick = () => {
-    const text = pasteInput.value.trim();
-    if (!text) {
-      alert("Please enter some text to save!");
-      return;
+  function main() {
+    const encodedScript = location.hash.slice(1);
+    if (encodedScript) {
+      // Decode and show only raw script text, no html tags
+      try {
+        const script = decodeURIComponent(encodedScript);
+        showRawOnly(script);
+      } catch {
+        // Fallback message (also no tags)
+        showRawOnly('Error decoding script.');
+      }
+    } else {
+      // Show the input panel and setup button
+      panel.style.display = 'flex';
+      generateBtn.onclick = () => {
+        let script = scriptInput.value.trim();
+        if (!script) {
+          alert('Please enter some script!');
+          return;
+        }
+        const encoded = encodeURIComponent(script);
+        const rawURL = location.origin + location.pathname + '#' + encoded;
+        linkDiv.innerHTML = `Raw URL:<br><a href="${rawURL}" target="_blank" rel="noopener">${rawURL}</a>`;
+      };
     }
-    const id = savePaste(text);
-    const rawLink = location.origin + "/raw.html?id=" + id;
-    linkDiv.innerHTML = `Paste saved! Share this raw link:<br><a href="${rawLink}" target="_blank" rel="noopener">${rawLink}</a>`;
-  };
+  }
+
+  main();
 </script>
 
 </body>
