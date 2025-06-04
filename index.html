@@ -55,7 +55,7 @@
 <body>
 
 <header id="header">Create a new paste</header>
-<textarea id="pasteInput" placeholder="Write or paste your text/code here... (Permanent Raw Links)"></textarea>
+<textarea id="pasteInput" placeholder="Write or paste your text/code here..."></textarea>
 <button id="saveBtn">Save Paste & Get Raw Link</button>
 <div id="link"></div>
 
@@ -79,9 +79,16 @@
   }
 
   function showRawTextOnly(content) {
-    // Clear entire page and replace with only raw text content
-    document.documentElement.innerHTML = '';
-    document.documentElement.textContent = content;
+    // Clear the entire document and replace it with just raw text
+    // No HTML tags, only pure text content
+    const doc = document.documentElement;
+    doc.innerHTML = '';              // Clear all HTML
+    doc.style.background = "#121212";
+    doc.style.color = "#eee";
+    doc.style.fontFamily = "monospace";
+    doc.style.margin = "1rem";
+    doc.style.whiteSpace = "pre";   // Preserve line breaks & spaces
+    doc.textContent = content;       // Set raw paste text only
   }
 
   function main() {
@@ -96,7 +103,6 @@
       return; // Do not show create UI
     }
 
-    // Show create UI
     saveBtn.onclick = () => {
       const text = pasteInput.value.trim();
       if (!text) {
