@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Raw Script Generator</title>
+<title>Raw Lua Script Generator</title>
 <style>
   html, body {
     margin: 0; padding: 2rem;
@@ -13,10 +13,10 @@
     height: 100vh;
   }
   #panel {
-    display: flex;
-    flex-direction: column;
     max-width: 900px;
     margin: auto;
+    display: flex;
+    flex-direction: column;
   }
   textarea {
     width: 100%;
@@ -63,39 +63,73 @@
   const generateBtn = document.getElementById('generateBtn');
   const linkDiv = document.getElementById('link');
 
-  function showRawOnly(script) {
-    // Clear the entire document content and write only raw text with no tags
-    document.documentElement.innerHTML = '';
-    // Create a text node with the script, no HTML wrapper
-    const textNode = document.createTextNode(script);
+  // Generate random 6-character ID
+  function generateID() {
+    return Math.random().toString(36).substring(2, 8);
+  }
+
+  // Save script in localStorage with key
+  function saveScript(id, script) {
+    localStorage.setItem("raw_script_" + id, script);
+  }
+
+  // Retrieve script by id from localStorage
+  function getScript(id) {
+    return localStorage.getItem("raw_script_" + id);
+  }
+
+  // Show only raw text with NO html tags or body
+  function showRawText(text) {
+    // Clear whole document and put only raw text node
+    document.documentElement.innerHTML = "";
+    const textNode = document.createTextNode(text);
     document.documentElement.appendChild(textNode);
   }
 
-  function main() {
-    const encodedScript = location.hash.slice(1);
-    if (encodedScript) {
-      // Decode and show only raw script text, no html tags
-      try {
-        const script = decodeURIComponent(encodedScript);
-        showRawOnly(script);
-      } catch {
-        // Fallback message (also no tags)
-        showRawOnly('Error decoding script.');
-      }
-    } else {
-      // Show the input panel and setup button
-      panel.style.display = 'flex';
-      generateBtn.onclick = () => {
-        let script = scriptInput.value.trim();
-        if (!script) {
-          alert('Please enter some script!');
-          return;
-        }
-        const encoded = encodeURIComponent(script);
-        const rawURL = location.origin + location.pathname + '#' + encoded;
-        linkDiv.innerHTML = `Raw URL:<br><a href="${rawURL}" target="_blank" rel="noopener">${rawURL}</a>`;
-      };
+  // Parse URL path to get raw id
+  function getRawIDFromPath() {
+    // Example path: /raw/sc8bj6
+    const path = window.location.pathname;
+    const parts = path.split("/");
+    if (parts.length === 3 && parts[1] === "raw" && parts[2]) {
+      return parts[2];
     }
+    return null;
+  }
+
+  function main() {
+    const rawID = getRawIDFromPath();
+
+    if (rawID) {
+      // RAW page: show only raw script text or error if none
+      const script = getScript(rawID);
+      if (script) {
+        showRawText(script);
+      } else {
+        showRawText("-- Error: script not found --");
+      }
+      return;
+    }
+
+    // Normal panel page
+    panel.style.display = "flex";
+
+    generateBtn.onclick = () => {
+      const script = scriptInput.value.trim();
+      if (!script) {
+        alert("Please enter some script!");
+        return;
+      }
+
+      const id = generateID();
+      saveScript(id, script);
+
+      const rawURL = window.location.origin + "/raw/" + id;
+      linkDiv.innerHTML = `Raw URL:<br><a href="${rawURL}" target="_blank" rel="noopener">${rawURL}</a>`;
+
+      // Optionally update URL (not required)
+      history.replaceState(null, '', '/');
+    };
   }
 
   main();
