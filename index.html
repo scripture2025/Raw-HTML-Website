@@ -2,124 +2,64 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Script Uploader</title>
   <style>
-    html, body {
-      margin: 0;
-      padding: 2rem;
-      background: #000;
-      color: #eee;
+    body {
+      background-color: black;
+      color: white;
       font-family: monospace;
-      height: 100vh;
-    }
-    #panel {
-      max-width: 900px;
-      margin: auto;
-      display: flex;
-      flex-direction: column;
+      padding: 2rem;
     }
     textarea {
       width: 100%;
-      height: 250px;
-      background: #111;
-      color: #eee;
+      height: 200px;
+      background-color: #111;
+      color: #0f0;
       border: none;
       padding: 1rem;
       font-size: 1rem;
-      border-radius: 8px;
-      font-family: monospace;
-      resize: vertical;
     }
     button {
       margin-top: 1rem;
-      background: #3a86ff;
-      border: none;
-      color: white;
-      padding: 0.6rem 1.2rem;
-      border-radius: 6px;
-      cursor: pointer;
+      padding: 0.5rem 1rem;
       font-size: 1rem;
-      width: fit-content;
     }
-    #link {
-      margin-top: 1rem;
-      word-break: break-word;
-      color: #aaf;
-    }
-    #discordBtn {
-      margin-top: 2rem;
-      background: #5865F2;
+    a {
+      color: #3a86ff;
     }
   </style>
 </head>
 <body>
+  <h1>Raw Script Host</h1>
+  <textarea id="code" placeholder="Paste your Lua code here..."></textarea>
+  <br />
+  <button onclick="saveFile()">Generate Link</button>
+  <br /><br />
+  <div id="linkOutput"></div>
+  <br />
+  <a href="https://discord.gg/eKUvfHBCCh" target="_blank">Discord Server</a>
 
-<div id="panel">
-  <h1>Paste your Lua script:</h1>
-  <textarea id="scriptInput" placeholder='print("hello world")'></textarea>
-  <button id="generateBtn">Generate Raw URL</button>
-  <div id="link"></div>
-  <button id="discordBtn" onclick="window.open('https://discord.gg/eKUvfHBCCh', '_blank')">Discord Server</button>
-</div>
-
-<script>
-  const panel = document.getElementById('panel');
-  const scriptInput = document.getElementById('scriptInput');
-  const generateBtn = document.getElementById('generateBtn');
-  const linkDiv = document.getElementById('link');
-
-  function generateID() {
-    return Math.random().toString(36).substring(2, 8);
-  }
-
-  function saveScript(id, script) {
-    localStorage.setItem("raw_script_" + id, script);
-  }
-
-  function getScript(id) {
-    return localStorage.getItem("raw_script_" + id);
-  }
-
-  function showRawTextOnly(text) {
-    // Overwrite document with plain text, no tags or styles
-    document.documentElement.innerHTML = "";
-    document.write(text); // this shows ONLY the raw text
-    document.close();
-  }
-
-  function main() {
-    const rawID = window.location.hash.slice(1);
-    if (rawID) {
-      const script = getScript(rawID);
-      if (script) {
-        showRawTextOnly(script);
-      } else {
-        showRawTextOnly("-- error: script not found --");
-      }
-      return;
+  <script>
+    function generateID() {
+      return Math.random().toString(36).substring(2, 8);
     }
 
-    // If not raw view, show upload panel
-    panel.style.display = "flex";
-
-    generateBtn.onclick = () => {
-      const script = scriptInput.value.trim();
-      if (!script) {
-        alert("Enter a script first!");
-        return;
-      }
-
+    function saveFile() {
+      const code = document.getElementById("code").value;
       const id = generateID();
-      saveScript(id, script);
+      const file = new Blob([code], { type: "text/plain" });
+      const a = document.createElement("a");
 
-      const url = window.location.origin + window.location.pathname + "#" + id;
-      linkDiv.innerHTML = `Raw URL (loadstring ready):<br><a href="${url}" target="_blank">${url}</a>`;
-    };
-  }
+      // This will allow users to download the file and upload to /raw manually
+      a.href = URL.createObjectURL(file);
+      a.download = id + ".txt";
+      a.click();
 
-  main();
-</script>
-
+      document.getElementById("linkOutput").innerHTML =
+        `Save the file to <code>/raw/${id}.txt</code> in your Netlify project and use:<br><br>
+        <code>loadstring(game:HttpGet('${location.origin}/raw/${id}.txt'))()</code>`;
+    }
+  </script>
 </body>
 </html>
