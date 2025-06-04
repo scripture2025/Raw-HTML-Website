@@ -55,7 +55,7 @@
 <body>
 
 <header id="header">Create a new paste</header>
-<textarea id="pasteInput" placeholder="Write or paste your text/code here..."></textarea>
+<textarea id="pasteInput" placeholder="Write or paste your text/code here... (Permanent)"></textarea>
 <button id="saveBtn">Save Paste & Get Raw Link</button>
 <div id="link"></div>
 
@@ -65,40 +65,45 @@
   const saveBtn = document.getElementById('saveBtn');
   const linkDiv = document.getElementById('link');
 
+  // Generate random ID for paste
   function generatePasteID() {
     return Math.random().toString(36).substring(2, 8);
   }
 
+  // Save paste content in localStorage
   function savePaste(content) {
     const id = generatePasteID();
     localStorage.setItem("paste_" + id, content);
     return id;
   }
 
+  // Get paste content by id
   function getPaste(id) {
     return localStorage.getItem("paste_" + id);
   }
 
+  // Show raw text ONLY (no HTML tags)
   function showRawTextOnly(content) {
-    // Replace entire document content with only raw text — no tags at all
     document.open();
     document.write(content);
     document.close();
   }
 
   function main() {
-    const pasteID = location.hash.substring(1);
-    if (pasteID) {
+    // Check URL hash for raw view: format #raw_<id>
+    const hash = location.hash;
+    if (hash.startsWith("#raw_")) {
+      const pasteID = hash.substring(5);
       const content = getPaste(pasteID);
       if (content !== null) {
         showRawTextOnly(content);
       } else {
         document.body.innerHTML = "<p style='color:#f55; font-family: monospace; text-align:center; margin-top: 2rem;'>Paste not found or expired.</p>";
       }
-      return; // Do not show create UI
+      return; // stop here to avoid showing UI
     }
 
-    // Show create UI
+    // Show UI for creating paste
     saveBtn.onclick = () => {
       const text = pasteInput.value.trim();
       if (!text) {
@@ -106,9 +111,9 @@
         return;
       }
       const id = savePaste(text);
-      const rawLink = location.origin + location.pathname + "#" + id;
+      const rawLink = location.origin + location.pathname + "#raw_" + id;
       linkDiv.innerHTML = `Paste saved! Share this raw link:<br><a href="${rawLink}" target="_blank" rel="noopener">${rawLink}</a>`;
-      history.replaceState(null, '', '#' + id);
+      history.replaceState(null, '', '#raw_' + id);
     };
   }
 
