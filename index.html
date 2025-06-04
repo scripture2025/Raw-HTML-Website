@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Roblox Script Pastebin</title>
+  <title>Script Pastes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
@@ -49,9 +49,10 @@
   <script>
     const hash = location.hash.slice(1);
     if (hash && hash.length === 6 && localStorage.getItem("paste_" + hash)) {
-      document.documentElement.innerHTML = "";
-      document.write(localStorage.getItem("paste_" + hash));
-      document.close();
+      const code = localStorage.getItem("paste_" + hash);
+      const blob = new Blob([code], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      location.href = url;
       throw new Error();
     }
 
@@ -70,7 +71,7 @@
       const loadstring = `loadstring(game:HttpGet(\"${rawUrl}\"))()`;
 
       document.getElementById("output").innerHTML = 
-        `Raw Link:\n<a href="${rawUrl}" target="_blank">${rawUrl}</a>\n\nLoadstring:\n${loadstring}`;
+        `Raw Link:\n<a href=\"${rawUrl}\" target=\"_blank\">${rawUrl}</a>\n\nLoadstring:\n${loadstring}`;
     }
   </script>
 
