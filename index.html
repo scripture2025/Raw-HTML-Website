@@ -55,7 +55,7 @@
 <body>
 
 <header id="header">Create a new paste</header>
-<textarea id="pasteInput" placeholder="Write or paste your text/code here... (skibidi)"></textarea>
+<textarea id="pasteInput" placeholder="Write or paste your text/code here..."></textarea>
 <button id="saveBtn">Save Paste & Get Raw Link</button>
 <div id="link"></div>
 
@@ -80,11 +80,10 @@
   }
 
   function showRawTextOnly(content) {
-    // Clear entire document HTML
-    document.documentElement.innerHTML = "";
-    // Replace entire document with a single text node containing raw code ONLY
-    const rawTextNode = document.createTextNode(content);
-    document.documentElement.appendChild(rawTextNode);
+    // Clear entire document and write ONLY raw text (no tags)
+    document.open();
+    document.write(content);
+    document.close();
   }
 
   function main() {
@@ -108,8 +107,9 @@
       }
       const id = savePaste(text);
       const rawLink = location.origin + location.pathname + "#" + id;
-      // Redirect to raw link immediately
-      window.location.href = rawLink;
+      linkDiv.innerHTML = `Paste saved! Share this raw link:<br><a href="${rawLink}" target="_blank" rel="noopener">${rawLink}</a>`;
+      // Optionally update URL so user can bookmark this raw paste view
+      history.replaceState(null, '', '#' + id);
     };
   }
 
