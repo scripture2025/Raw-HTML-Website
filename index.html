@@ -1,73 +1,83 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Raw Script Share</title>
+  <meta charset="UTF-8" />
+  <title>Raw Paste Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
-      background: black;
+      background: #000;
       color: white;
       font-family: monospace;
-      padding: 20px;
+      padding: 2rem;
       text-align: center;
     }
     textarea {
       width: 90%;
       height: 200px;
+      margin-top: 1rem;
       background: #111;
-      color: white;
+      color: #0f0;
       border: none;
-      padding: 10px;
-      font-family: monospace;
+      padding: 1rem;
+      font-size: 1rem;
     }
     button {
-      margin: 10px;
-      padding: 10px 20px;
-      font-size: 16px;
+      padding: 0.8rem 1.5rem;
+      margin: 0.5rem;
+      font-size: 1rem;
       cursor: pointer;
     }
-    #links {
-      margin-top: 20px;
-      word-break: break-word;
+    #output {
+      margin-top: 2rem;
+      white-space: pre-wrap;
+    }
+    a {
+      color: #0ff;
     }
   </style>
 </head>
 <body>
 
-<h2>Create Raw Script Link</h2>
-<textarea id="codeInput" placeholder="Paste Lua script here..."></textarea><br>
-<button onclick="saveScript()">Create Link</button>
-<button onclick="window.open('https://discord.gg/eKUvfHBCCh')">Discord Server</button>
-<div id="links"></div>
+  <button onclick="createPaste()">Create Link</button>
+  <button onclick="window.open('https://discord.gg/eKUvfHBCCh', '_blank')">Discord Server</button>
+  <br />
+  <textarea id="codeInput" placeholder='Type your Lua code here...'></textarea>
 
-<script>
-  const hash = location.hash.replace("#", "");
-  if (hash) {
-    const saved = localStorage.getItem("paste_" + hash);
-    if (saved) {
-      document.open();
-      document.write(saved);
-      document.close();
-    } else {
-      document.body.innerHTML = "<p style='color:red'>Script not found.</p>";
+  <div id="output"></div>
+
+  <script>
+    function generateID() {
+      return Math.random().toString(36).substring(2, 8);
     }
-  }
 
-  function randomID() {
-    return Math.random().toString(36).substring(2, 8);
-  }
+    function createPaste() {
+      const code = document.getElementById("codeInput").value.trim();
+      if (!code) return alert("You need to enter some code!");
 
-  function saveScript() {
-    const code = document.getElementById("codeInput").value.trim();
-    if (!code) return alert("Paste your Lua code.");
-    const id = randomID();
-    localStorage.setItem("paste_" + id, code);
-    const link = location.origin + location.pathname + "#" + id;
-    document.getElementById("links").innerHTML = `
-      <b>Raw Link:</b><br>${link}<br><br>
-      <b>Loadstring:</b><br>loadstring(game:HttpGet("${link}"))()
-    `;
-  }
-</script>
+      const id = generateID();
+      localStorage.setItem("paste_" + id, code);
+
+      const rawUrl = location.origin + location.pathname + "#" + id;
+      const loadstring = `loadstring(game:HttpGet("${rawUrl}"))()`;
+
+      document.getElementById("output").innerHTML = 
+        `Raw Link:\n<a href="${rawUrl}" target="_blank">${rawUrl}</a>\n\nLoadstring:\n${loadstring}`;
+    }
+
+    // Show raw content directly if #id exists
+    window.onload = function () {
+      const hash = location.hash.substring(1);
+      if (hash.startsWith("paste_") || hash.length === 6) {
+        const data = localStorage.getItem("paste_" + hash);
+        if (data) {
+          document.open();
+          document.write(data);
+          document.close();
+        }
+      }
+    }
+  </script>
 
 </body>
 </html>
