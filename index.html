@@ -55,7 +55,7 @@
 <body>
 
 <header id="header">Create a new paste</header>
-<textarea id="pasteInput" placeholder="Write or paste your text/code here... (Best Pastebin)"></textarea>
+<textarea id="pasteInput" placeholder="Write or paste your text/code here..."></textarea>
 <button id="saveBtn">Save Paste & Get Raw Link</button>
 <div id="link"></div>
 
@@ -65,33 +65,30 @@
   const saveBtn = document.getElementById('saveBtn');
   const linkDiv = document.getElementById('link');
 
-  // Generate a short random ID for each paste
+  // Generate random paste ID
   function generatePasteID() {
     return Math.random().toString(36).substring(2, 8);
   }
 
-  // Save paste content to localStorage with ID
+  // Save content in localStorage by ID
   function savePaste(content) {
     const id = generatePasteID();
     localStorage.setItem("paste_" + id, content);
     return id;
   }
 
-  // Retrieve paste content by ID from localStorage
+  // Retrieve content by ID
   function getPaste(id) {
     return localStorage.getItem("paste_" + id);
   }
 
-  // Show ONLY the raw text content of the paste — no HTML, no tags, nothing
+  // Output raw text only, with NO HTML tags, no styling — just raw text content
   function showRawTextOnly(content) {
-    // Clear the entire document (html and body)
-    document.documentElement.innerHTML = '';
-
-    // Create a single text node with the paste content
-    const textNode = document.createTextNode(content);
-
-    // Append it directly to the <html> element (document.documentElement)
-    document.documentElement.appendChild(textNode);
+    // Clear entire document HTML
+    document.documentElement.innerHTML = "";
+    // Replace entire document with a single text node containing raw code ONLY
+    const rawTextNode = document.createTextNode(content);
+    document.documentElement.appendChild(rawTextNode);
   }
 
   function main() {
@@ -101,15 +98,12 @@
       if (content !== null) {
         showRawTextOnly(content);
       } else {
-        // Paste not found: show minimal error message
-        document.documentElement.innerHTML = '';
-        const errText = document.createTextNode("Paste not found or expired.");
-        document.documentElement.appendChild(errText);
+        document.body.innerHTML = "<p style='color:#f55; font-family: monospace; text-align:center; margin-top: 2rem;'>Paste not found or expired.</p>";
       }
-      return; // Don't show UI when showing paste raw text
+      return; // Do not show create UI
     }
 
-    // Show paste creation UI
+    // Show create UI
     saveBtn.onclick = () => {
       const text = pasteInput.value.trim();
       if (!text) {
