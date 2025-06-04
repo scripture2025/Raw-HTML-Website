@@ -47,6 +47,13 @@
   <div id="output"></div>
 
   <script>
+    const hash = location.hash.slice(1);
+    if (hash && hash.length === 6 && localStorage.getItem("paste_" + hash)) {
+      document.body.innerHTML = "";
+      document.write(localStorage.getItem("paste_" + hash));
+      throw new Error(); // stop JS execution
+    }
+
     function generateID() {
       return Math.random().toString(36).substring(2, 8);
     }
@@ -63,19 +70,6 @@
 
       document.getElementById("output").innerHTML = 
         `Raw Link:\n<a href="${rawUrl}" target="_blank">${rawUrl}</a>\n\nLoadstring:\n${loadstring}`;
-    }
-
-    // Show raw content directly if #id exists
-    window.onload = function () {
-      const hash = location.hash.substring(1);
-      if (hash.startsWith("paste_") || hash.length === 6) {
-        const data = localStorage.getItem("paste_" + hash);
-        if (data) {
-          document.open();
-          document.write(data);
-          document.close();
-        }
-      }
     }
   </script>
 
