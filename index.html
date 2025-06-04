@@ -80,14 +80,16 @@
   }
 
   function showRawTextOnly(content) {
-    // Replace entire document content with raw text (no HTML)
-    document.documentElement.innerHTML = ''; // Clear HTML
+    // Clear all existing HTML and replace with raw text only:
+    document.documentElement.innerHTML = '';
+    // Put raw content as text node on documentElement to avoid HTML parsing:
     document.documentElement.textContent = content;
-    document.body.style.background = "#121212";
-    document.body.style.color = "#eee";
-    document.body.style.fontFamily = "monospace";
-    document.body.style.margin = "1rem";
-    // Just text visible, no tags or styling
+    // For background and text color on blank page:
+    document.documentElement.style.background = '#121212';
+    document.documentElement.style.color = '#eee';
+    document.documentElement.style.fontFamily = 'monospace';
+    document.documentElement.style.margin = '1rem';
+    // No HTML tags, just raw text content
   }
 
   function main() {
@@ -99,10 +101,10 @@
       } else {
         document.body.innerHTML = "<p style='color:#f55; font-family: monospace; text-align:center; margin-top: 2rem;'>Paste not found or expired.</p>";
       }
-      return; // Do not show create UI
+      return; // Skip UI creation
     }
 
-    // Show create UI
+    // UI for creating paste
     saveBtn.onclick = () => {
       const text = pasteInput.value.trim();
       if (!text) {
@@ -112,7 +114,7 @@
       const id = savePaste(text);
       const rawLink = location.origin + location.pathname + "#" + id;
       linkDiv.innerHTML = `Paste saved! Share this raw link:<br><a href="${rawLink}" target="_blank" rel="noopener">${rawLink}</a>`;
-      // Optionally update URL so user can bookmark this raw paste view
+      // Update URL for bookmark
       history.replaceState(null, '', '#' + id);
     };
   }
