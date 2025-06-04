@@ -3,34 +3,131 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Raw Paste</title>
+<title>Simple Pastebin</title>
 <style>
-  /* Full page black background with monospace white text */
   body {
-    margin: 0;
     background: #121212;
     color: #eee;
-    font-family: monospace, monospace;
-    white-space: pre-wrap; /* preserve line breaks */
+    font-family: monospace;
+    margin: 0;
     padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+  }
+  header {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #3a86ff;
+  }
+  textarea {
+    width: 90vw;
+    max-width: 900px;
+    height: 300px;
+    background: #181818;
+    color: #eee;
+    border: none;
+    padding: 1rem;
+    font-size: 1rem;
+    border-radius: 8px;
+    resize: vertical;
+    font-family: monospace;
+  }
+  button {
+    margin-top: 1rem;
+    background: #3a86ff;
+    border: none;
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+  #link {
+    margin-top: 1rem;
+    max-width: 900px;
+    word-break: break-word;
+    color: #aaf;
   }
 </style>
 </head>
 <body>
+
+<header id="header">Create a new paste</header>
+<textarea id="pasteInput" placeholder="Write or paste your text/code here..."></textarea>
+<button id="saveBtn">Save Paste & Get Link</button>
+<div id="link"></div>
+
 <script>
-  // Get paste ID from URL hash
-  const pasteID = location.hash.substring(1);
-  if (!pasteID) {
-    document.body.textContent = ""; // empty if no ID
-  } else {
-    const content = localStorage.getItem("paste_" + pasteID);
-    if (content === null) {
-      document.body.textContent = ""; // empty if paste not found
-    } else {
-      // Show raw content exactly, no escaping (assumes plain text)
-      document.body.textContent = content;
-    }
+  const header = document.getElementById('header');
+  const pasteInput = document.getElementById('pasteInput');
+  const saveBtn = document.getElementById('saveBtn');
+  const linkDiv = document.getElementById('link');
+
+  function generatePasteID() {
+    // Generates 6 random base36 chars, ignoring "0." prefix
+    return Math.random().toString(36).substring(2, 8);
   }
+
+  function savePaste(content) {
+    const id = generatePasteID();
+    localStorage.setItem("paste_" + id, content);
+    return id;
+  }
+
+  function getPaste(id) {
+    return localStorage.getItem("paste_" + id);
+  }
+
+  function showRawContent(content) {
+    pasteInput.value = content;
+    pasteInput.readOnly = true;
+    header.textContent = "Viewing Paste (read-only)";
+    saveBtn.style.display = "none";
+  }
+
+  function showCreateUI() {
+    pasteInput.value = "";
+    pasteInput.readOnly = false;
+    header.textContent = "Create a new paste";
+    saveBtn.style.display = "inline-block";
+    linkDiv.innerHTML = "";
+  }
+
+  function main() {
+    const pasteID = location.hash.substring(1);
+
+    if (pasteID) {
+      const content = getPaste(pasteID);
+      if (content) {
+        showRawContent(content);
+      } else {
+        header.textContent = "Paste not found";
+        pasteInput.style.display = "none";
+        saveBtn.style.display = "none";
+        linkDiv.textContent = "";
+      }
+    } else {
+      showCreateUI();
+    }
+
+    saveBtn.onclick = () => {
+      const text = pasteInput.value.trim();
+      if (!text) {
+        alert("Please enter some text to save!");
+        return;
+      }
+      const id = savePaste(text);
+      const rawLink = location.origin + location.pathname + "#" + id;
+      linkDiv.innerHTML = `Paste saved! Share this link:<br><a href="${rawLink}" target="_blank" rel="noopener">${rawLink}</a>`;
+      history.replaceState(null, '', '#' + id);
+      showRawContent(text);
+    };
+  }
+
+  main();
 </script>
+
 </body>
 </html>
