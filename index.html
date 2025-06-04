@@ -49,9 +49,10 @@
   <script>
     const hash = location.hash.slice(1);
     if (hash && hash.length === 6 && localStorage.getItem("paste_" + hash)) {
-      document.body.innerHTML = "";
+      document.documentElement.innerHTML = "";
       document.write(localStorage.getItem("paste_" + hash));
-      throw new Error(); // stop JS execution
+      document.close();
+      throw new Error();
     }
 
     function generateID() {
@@ -66,7 +67,7 @@
       localStorage.setItem("paste_" + id, code);
 
       const rawUrl = location.origin + location.pathname + "#" + id;
-      const loadstring = `loadstring(game:HttpGet("${rawUrl}"))()`;
+      const loadstring = `loadstring(game:HttpGet(\"${rawUrl}\"))()`;
 
       document.getElementById("output").innerHTML = 
         `Raw Link:\n<a href="${rawUrl}" target="_blank">${rawUrl}</a>\n\nLoadstring:\n${loadstring}`;
