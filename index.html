@@ -2,13 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Lua Paste</title>
+  <title>Script Uploader</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
+      margin: 0;
+      padding: 2rem;
       background: black;
       color: white;
       font-family: monospace;
-      padding: 2rem;
     }
     textarea {
       width: 100%;
@@ -17,43 +19,73 @@
       color: #0f0;
       border: none;
       padding: 1rem;
+      font-size: 1rem;
     }
     button {
       margin-top: 1rem;
       font-size: 1rem;
+      padding: 0.5rem 1rem;
+      background: #3a86ff;
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
+    .output {
+      margin-top: 1rem;
+      font-family: monospace;
+    }
+    a {
+      color: #5af;
     }
   </style>
 </head>
 <body>
-  <h1>Lua Paste Generator</h1>
-  <textarea id="input" placeholder="Paste your Lua code here..."></textarea>
-  <br>
-  <button onclick="generate()">Download File</button>
-  <div id="result" style="margin-top: 1rem;"></div>
 
-  <script>
-    function generateID() {
-      return Math.random().toString(36).substr(2, 6);
+<h1>Lua Pastebin Panel</h1>
+<textarea id="input" placeholder="Paste your Lua script here..."></textarea><br>
+<button onclick="savePaste()">Create Raw Link</button>
+
+<div class="output" id="result"></div>
+
+<script>
+function generateID() {
+  return Math.random().toString(36).substr(2, 6);
+}
+
+function savePaste() {
+  const code = document.getElementById('input').value.trim();
+  if (!code) {
+    alert("Please enter some Lua code");
+    return;
+  }
+  const id = generateID();
+  localStorage.setItem("lua_" + id, code);
+  const url = location.origin + location.pathname + "#" + id;
+
+  document.getElementById("result").innerHTML = `
+    <strong>Raw Link:</strong><br>
+    <a href="${url}" target="_blank">${url}</a><br><br>
+    <strong>Loadstring:</strong><br>
+    <code>loadstring(game:HttpGet("${url}"))()</code>
+  `;
+}
+
+function renderRawIfHash() {
+  const id = location.hash.slice(1);
+  if (id) {
+    const raw = localStorage.getItem("lua_" + id);
+    if (raw !== null) {
+      document.open();
+      document.write(raw);
+      document.close();
+    } else {
+      document.body.innerHTML = "<p style='color:red'>Error: Paste not found</p>";
     }
+  }
+}
 
-    function generate() {
-      const code = document.getElementById('input').value;
-      if (!code.trim()) return alert("Enter some code");
+renderRawIfHash();
+</script>
 
-      const id = generateID();
-      const blob = new Blob([code], { type: "text/plain" });
-      const a = document.createElement("a");
-
-      a.href = URL.createObjectURL(blob);
-      a.download = id + ".txt";
-      a.click();
-
-      document.getElementById("result").innerHTML = `
-        ✅ Upload the downloaded file!.<br>
-        Use this loadstring:<br>
-        <code>loadstring(game:HttpGet('https://${location.hostname}/${id}.txt'))()</code>
-      `;
-    }
-  </script>
 </body>
 </html>
