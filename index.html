@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Simple Pastebin</title>
+<title>Raw Pastebin</title>
 <style>
   body {
     background: #121212;
@@ -56,7 +56,7 @@
 
 <header id="header">Create a new paste</header>
 <textarea id="pasteInput" placeholder="Write or paste your text/code here..."></textarea>
-<button id="saveBtn">Save Paste & Get Link</button>
+<button id="saveBtn">Save Paste & Get Raw Link</button>
 <div id="link"></div>
 
 <script>
@@ -66,7 +66,6 @@
   const linkDiv = document.getElementById('link');
 
   function generatePasteID() {
-    // Generates 6 random base36 chars, ignoring "0." prefix
     return Math.random().toString(36).substring(2, 8);
   }
 
@@ -80,38 +79,30 @@
     return localStorage.getItem("paste_" + id);
   }
 
-  function showRawContent(content) {
-    pasteInput.value = content;
-    pasteInput.readOnly = true;
-    header.textContent = "Viewing Paste (read-only)";
-    saveBtn.style.display = "none";
-  }
-
-  function showCreateUI() {
-    pasteInput.value = "";
-    pasteInput.readOnly = false;
-    header.textContent = "Create a new paste";
-    saveBtn.style.display = "inline-block";
-    linkDiv.innerHTML = "";
+  function showRawTextOnly(content) {
+    // Replace entire document content with raw text (no HTML)
+    document.documentElement.innerHTML = ''; // Clear HTML
+    document.documentElement.textContent = content;
+    document.body.style.background = "#121212";
+    document.body.style.color = "#eee";
+    document.body.style.fontFamily = "monospace";
+    document.body.style.margin = "1rem";
+    // Just text visible, no tags or styling
   }
 
   function main() {
     const pasteID = location.hash.substring(1);
-
     if (pasteID) {
       const content = getPaste(pasteID);
-      if (content) {
-        showRawContent(content);
+      if (content !== null) {
+        showRawTextOnly(content);
       } else {
-        header.textContent = "Paste not found";
-        pasteInput.style.display = "none";
-        saveBtn.style.display = "none";
-        linkDiv.textContent = "";
+        document.body.innerHTML = "<p style='color:#f55; font-family: monospace; text-align:center; margin-top: 2rem;'>Paste not found or expired.</p>";
       }
-    } else {
-      showCreateUI();
+      return; // Do not show create UI
     }
 
+    // Show create UI
     saveBtn.onclick = () => {
       const text = pasteInput.value.trim();
       if (!text) {
@@ -120,9 +111,9 @@
       }
       const id = savePaste(text);
       const rawLink = location.origin + location.pathname + "#" + id;
-      linkDiv.innerHTML = `Paste saved! Share this link:<br><a href="${rawLink}" target="_blank" rel="noopener">${rawLink}</a>`;
+      linkDiv.innerHTML = `Paste saved! Share this raw link:<br><a href="${rawLink}" target="_blank" rel="noopener">${rawLink}</a>`;
+      // Optionally update URL so user can bookmark this raw paste view
       history.replaceState(null, '', '#' + id);
-      showRawContent(text);
     };
   }
 
