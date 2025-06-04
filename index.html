@@ -80,7 +80,7 @@
   }
 
   function showRawTextOnly(content) {
-    // Clear entire document and write ONLY raw text (no tags)
+    // Replace entire document content with only raw text — no tags at all
     document.open();
     document.write(content);
     document.close();
@@ -108,7 +108,6 @@
       const id = savePaste(text);
       const rawLink = location.origin + location.pathname + "#" + id;
       linkDiv.innerHTML = `Paste saved! Share this raw link:<br><a href="${rawLink}" target="_blank" rel="noopener">${rawLink}</a>`;
-      // Optionally update URL so user can bookmark this raw paste view
       history.replaceState(null, '', '#' + id);
     };
   }
