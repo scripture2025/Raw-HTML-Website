@@ -88,11 +88,11 @@
 
   // Parse URL path to get raw id
   function getRawIDFromPath() {
-    // Example path: /raw/sc8bj6
+    // Example path: /sc8bj6
     const path = window.location.pathname;
     const parts = path.split("/");
-    if (parts.length === 3 && parts[1] === "raw" && parts[2]) {
-      return parts[2];
+    if (parts.length === 2 && parts[1]) {
+      return parts[1];
     }
     return null;
   }
@@ -124,7 +124,7 @@
       const id = generateID();
       saveScript(id, script);
 
-      const rawURL = window.location.origin + "/raw/" + id;
+      const rawURL = window.location.origin + "/" + id;
       linkDiv.innerHTML = `Raw URL:<br><a href="${rawURL}" target="_blank" rel="noopener">${rawURL}</a>`;
 
       // Optionally update URL (not required)
