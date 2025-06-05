@@ -27,7 +27,7 @@
       margin: auto;
     }
 
-    textarea {
+    textarea, pre {
       width: 100%;
       height: 300px;
       background-color: #1a1a1a;
@@ -39,22 +39,39 @@
       border-radius: 8px;
       resize: vertical;
       box-shadow: 0 0 5px #00ffcc40;
+      white-space: pre-wrap;
+      word-wrap: break-word;
     }
 
     button {
       background-color: #00ff99;
       color: #000;
-      padding: 12px 24px;
-      font-size: 16px;
+      padding: 14px 30px;
+      font-size: 18px;
       border: none;
-      margin-top: 10px;
-      border-radius: 6px;
+      border-radius: 8px;
       cursor: pointer;
       transition: background 0.2s;
+      margin: 5px 10px 20px 0;
     }
 
     button:hover {
       background-color: #00cc7a;
+    }
+
+    .top-buttons {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .notes {
+      margin-top: 20px;
+      font-style: italic;
+      color: #80ffd3;
+      background: #141414;
+      padding: 10px 15px;
+      border-radius: 6px;
+      box-shadow: 0 0 5px #00ffcc40;
     }
 
     input {
@@ -81,23 +98,13 @@
     .hidden {
       display: none;
     }
-
-    pre {
-      background: #111;
-      padding: 15px;
-      border-radius: 8px;
-      color: #00ffcc;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      box-shadow: 0 0 5px #00ffcc40;
-    }
   </style>
 </head>
 <body>
   <header id="siteHeader">Developer Portal</header>
 
   <main id="portalScreen" class="portal">
-    <button onclick="openSection('html')">Enter HTML Site Generator</button>
+    <button onclick="openSection('html')">Enter HTML Site Creator</button>
     <button onclick="openSection('lua')">Enter Lua Script Uploader</button>
   </main>
 
@@ -201,8 +208,13 @@
           document.body.innerHTML = `
             <header>Lua Script</header>
             <main>
+              <div class="top-buttons">
+                <button onclick="copyLua()">Copy Script</button>
+                <button onclick="downloadLua()">Download Script</button>
+                <button onclick="location.href='https://scriptsrblx.netlify.app'">Best Pastebin Copy</button>
+              </div>
               <pre id="luaDisplay">${code.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>
-              <button onclick="copyLua()">Copy Script</button>
+              <div class="notes">Notes: Copy the Script and Execute it on your Executor!</div>
             </main>
           `;
         } else {
@@ -216,6 +228,15 @@
       navigator.clipboard.writeText(code).then(() => {
         alert("Script copied to clipboard!");
       });
+    }
+
+    function downloadLua() {
+      const code = document.getElementById("luaDisplay").textContent;
+      const blob = new Blob([code], { type: "text/plain" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "script.lua";
+      a.click();
     }
   </script>
 </body>
