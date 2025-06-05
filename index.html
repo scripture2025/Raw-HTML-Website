@@ -1,79 +1,46 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Script Pastes</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HTML Raw Uploader</title>
   <style>
-    body {
-      background: #000;
-      color: white;
-      font-family: monospace;
-      padding: 2rem;
-      text-align: center;
-    }
-    textarea {
-      width: 90%;
-      height: 200px;
-      margin-top: 1rem;
-      background: #111;
-      color: #0f0;
-      border: none;
-      padding: 1rem;
-      font-size: 1rem;
-    }
-    button {
-      padding: 0.8rem 1.5rem;
-      margin: 0.5rem;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-    #output {
-      margin-top: 2rem;
-      white-space: pre-wrap;
-    }
-    a {
-      color: #0ff;
-    }
+    body { font-family: sans-serif; padding: 20px; background: #111; color: #eee; }
+    textarea { width: 100%; height: 300px; background: #222; color: #0f0; border: none; padding: 10px; font-family: monospace; }
+    button { padding: 10px 20px; font-size: 16px; background: #0f0; color: #000; border: none; margin-top: 10px; }
+    input { width: 100%; margin-top: 10px; padding: 10px; font-family: monospace; }
   </style>
 </head>
 <body>
-
-  <button onclick="createPaste()">Create Link</button>
-  <button onclick="window.open('https://discord.gg/eKUvfHBCCh', '_blank')">Discord Server</button>
-  <br />
-  <textarea id="codeInput" placeholder='Type your Lua code here...'></textarea>
-
-  <div id="output"></div>
-
+  <h1>HTML Raw Paste</h1>
+  <textarea id="htmlCode" placeholder="Paste your HTML code here..."></textarea>
+  <br>
+  <button onclick="savePaste()">Create Raw Page</button>
+  <input type="text" id="outputLink" readonly placeholder="Raw link will appear here">
   <script>
-    const hash = location.hash.slice(1);
-    if (hash && hash.length === 6 && localStorage.getItem("paste_" + hash)) {
-      const code = localStorage.getItem("paste_" + hash);
-      const blob = new Blob([code], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      location.href = url;
-      throw new Error();
+    function generateID(length = 8) {
+      return [...Array(length)].map(() => Math.random().toString(36)[2]).join('');
     }
 
-    function generateID() {
-      return Math.random().toString(36).substring(2, 8);
-    }
-
-    function createPaste() {
-      const code = document.getElementById("codeInput").value.trim();
-      if (!code) return alert("You need to enter some code!");
-
+    function savePaste() {
+      const code = document.getElementById('htmlCode').value;
       const id = generateID();
-      localStorage.setItem("paste_" + id, code);
-
-      const rawUrl = location.origin + location.pathname + "#" + id;
-      const loadstring = `loadstring(game:HttpGet(\"${rawUrl}\"))()`;
-
-      document.getElementById("output").innerHTML = 
-        `Raw Link:\n<a href=\"${rawUrl}\" target=\"_blank\">${rawUrl}</a>\n\nLoadstring:\n${loadstring}`;
+      localStorage.setItem("raw_" + id, code);
+      const rawUrl = location.origin + "/#" + id;
+      document.getElementById('outputLink').value = rawUrl;
     }
-  </script>
 
+    window.addEventListener('load', () => {
+      const hash = location.hash.slice(1);
+      if (hash) {
+        const code = localStorage.getItem("raw_" + hash);
+        if (code) {
+          document.open();
+          document.write(code);
+          document.close();
+        } else {
+          document.body.innerHTML = "<h2>404 - Paste not found</h2>";
+        }
+      }
+    });
+  </script>
 </body>
 </html>
