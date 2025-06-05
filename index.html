@@ -153,7 +153,7 @@
     function copyHTML() {
       const code = document.getElementById('htmlCode').value;
       navigator.clipboard.writeText(code).then(() => {
-        alert("Script copied to clipboard, execute it on your Executor!");
+        alert("HTML copied to clipboard!");
       });
     }
 
@@ -197,10 +197,26 @@
         }
       } else if (hash.startsWith("lua_")) {
         const code = localStorage.getItem(hash);
-        document.body.innerHTML = "<pre style='color:#00ffcc;background:#111;padding:15px;margin:20px;border-radius:10px;'>"
-                                  + (code || "404 - Lua Script Not Found") + "</pre>";
+        if (code) {
+          document.body.innerHTML = `
+            <header>Lua Script</header>
+            <main>
+              <pre id="luaDisplay">${code.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>
+              <button onclick="copyLua()">Copy Script</button>
+            </main>
+          `;
+        } else {
+          document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>404 - Lua Script Not Found</h2>";
+        }
       }
     });
+
+    function copyLua() {
+      const code = document.getElementById("luaDisplay").textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        alert("Script copied to clipboard!");
+      });
+    }
   </script>
 </body>
 </html>
