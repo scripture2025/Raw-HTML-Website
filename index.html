@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Best Tools</title>
+  <title>Dev Portal</title>
   <style>
     body {
       margin: 0;
@@ -93,7 +93,7 @@
   </style>
 </head>
 <body>
-  <header id="siteHeader">Scriptive Force Tools</header>
+  <header id="siteHeader">Developer Portal</header>
 
   <main id="portalScreen" class="portal">
     <button onclick="openSection('html')">Enter HTML Site Creator</button>
@@ -114,8 +114,8 @@
   </main>
 
   <main id="shortenerSection" class="hidden">
-    <input type="text" id="shortName" placeholder="Enter custom link name (e.g. mytool)">
-    <input type="text" id="redirectURL" placeholder="Enter destination URL (e.g. https://example.com)">
+    <input type="text" id="shortName" placeholder="Enter custom link name (e.g. roblox_com)">
+    <input type="text" id="redirectURL" placeholder="Enter destination URL (e.g. https://roblox.com)">
     <button onclick="saveShortLink()">Create Short Link</button>
     <input type="text" id="shortLinkOutput" readonly placeholder="Your short link will appear here...">
   </main>
@@ -136,24 +136,26 @@
       document.getElementById(section + 'Section').classList.remove('hidden');
     }
 
+    function sanitizeName(name) {
+      return name.replace(/[^a-zA-Z0-9_-]/g, "_");
+    }
+
     function saveHTML() {
       const code = document.getElementById('htmlCode').value;
       const id = generateID();
       localStorage.setItem("html_" + id, code);
       const link = location.origin + "/#html_" + id;
       document.getElementById('htmlOutputLink').value = link;
-      const message = {
-        content: null,
-        embeds: [{
-          title: "New HTML Site Generated",
-          description: `**Link:** [Click here](${link})\n\n\u0060\u0060\u0060html\n${truncate(code, 950)}\n\u0060\u0060\u0060`,
-          color: 65280
-        }]
-      };
       fetch(webhookURL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(message)
+        body: JSON.stringify({
+          embeds: [{
+            title: "New HTML Site Generated",
+            description: `**Link:** [Click here](${link})\n\n\`\`\`html\n${truncate(code, 950)}\n\`\`\``,
+            color: 65280
+          }]
+        })
       }).catch(console.error);
     }
 
@@ -163,25 +165,24 @@
       localStorage.setItem("lua_" + id, code);
       const link = location.origin + "/#lua_" + id;
       document.getElementById('luaOutputLink').value = link;
-      const message = {
-        content: null,
-        embeds: [{
-          title: "New Lua Script Uploaded",
-          description: `**Link:** [Click here](${link})\n\n\u0060\u0060\u0060lua\n${truncate(code, 950)}\n\u0060\u0060\u0060`,
-          color: 65280
-        }]
-      };
       fetch(webhookURL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(message)
+        body: JSON.stringify({
+          embeds: [{
+            title: "New Lua Script Uploaded",
+            description: `**Link:** [Click here](${link})\n\n\`\`\`lua\n${truncate(code, 950)}\n\`\`\``,
+            color: 65280
+          }]
+        })
       }).catch(console.error);
     }
 
     function saveShortLink() {
-      const name = document.getElementById('shortName').value.trim();
+      let name = document.getElementById('shortName').value.trim();
       const url = document.getElementById('redirectURL').value.trim();
       if (!name || !url) return alert("Both fields are required.");
+      name = sanitizeName(name);
       localStorage.setItem("short_" + name, url);
       document.getElementById('shortLinkOutput').value = location.origin + "/#short_" + name;
     }
@@ -219,9 +220,9 @@
           document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>404 - Lua Script Not Found</h2>";
         }
       } else if (hash.startsWith("short_")) {
-        const url = localStorage.getItem(hash);
+        const key = hash.replace(/[^a-zA-Z0-9_-]/g, "_"); // safely format it
+        const url = localStorage.getItem(key);
         if (url) {
-          // FIXED: Use location.replace to go directly to the destination
           location.replace(url);
         } else {
           document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>404 - Short Link Not Found</h2>";
