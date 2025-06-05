@@ -106,8 +106,9 @@
   <header id="siteHeader">Developer Portal</header>
 
   <main id="portalScreen" class="portal">
-    <button onclick="openSection('html')">Enter HTML Site Creator</button>
+    <button onclick="openSection('html')">Enter HTML Site Generator</button>
     <button onclick="openSection('lua')">Enter Lua Script Uploader</button>
+    <button onclick="openSection('shortener')">Enter Link Shortener</button>
   </main>
 
   <main id="htmlSection" class="hidden">
@@ -123,6 +124,13 @@
     <input type="text" id="luaOutputLink" readonly placeholder="Your Lua script link will appear here...">
   </main>
 
+  <main id="shortenerSection" class="hidden">
+    <input type="text" id="shortName" placeholder="Enter custom link name (e.g. mytool)">
+    <input type="text" id="redirectURL" placeholder="Enter destination URL (e.g. https://example.com)">
+    <button onclick="saveShortLink()">Create Short Link</button>
+    <input type="text" id="shortLinkOutput" readonly placeholder="Your short link will appear here...">
+  </main>
+
   <script>
     const webhookURL = "https://discord.com/api/webhooks/1380268452849389679/r65MSo1IY9kM9Ele6_KIYONXrehC0xbpApbjWzJrFCCS97rGeA0uex2TyFCXq8rAdMxv";
 
@@ -132,7 +140,10 @@
 
     function openSection(section) {
       document.getElementById('portalScreen').classList.add('hidden');
-      document.getElementById('siteHeader').textContent = section === 'html' ? 'HTML Site Generator' : 'Lua Script Uploader';
+      document.getElementById('siteHeader').textContent =
+        section === 'html' ? 'HTML Site Generator' :
+        section === 'lua' ? 'Lua Script Uploader' :
+        'Link Shortener';
       document.getElementById(section + 'Section').classList.remove('hidden');
     }
 
@@ -142,16 +153,14 @@
       localStorage.setItem("html_" + id, code);
       const link = location.origin + "/#html_" + id;
       document.getElementById('htmlOutputLink').value = link;
-
       const message = {
         content: null,
         embeds: [{
           title: "New HTML Site Generated",
-          description: `**Link:** [Click here](${link})\n\n\`\`\`html\n${truncate(code, 950)}\n\`\`\``,
+          description: `**Link:** [Click here](${link})\n\n\u0060\u0060\u0060html\n${truncate(code, 950)}\n\u0060\u0060\u0060`,
           color: 65280
         }]
       };
-
       fetch(webhookURL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -172,21 +181,27 @@
       localStorage.setItem("lua_" + id, code);
       const link = location.origin + "/#lua_" + id;
       document.getElementById('luaOutputLink').value = link;
-
       const message = {
         content: null,
         embeds: [{
           title: "New Lua Script Uploaded",
-          description: `**Link:** [Click here](${link})\n\n\`\`\`lua\n${truncate(code, 950)}\n\`\`\``,
+          description: `**Link:** [Click here](${link})\n\n\u0060\u0060\u0060lua\n${truncate(code, 950)}\n\u0060\u0060\u0060`,
           color: 65280
         }]
       };
-
       fetch(webhookURL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(message)
       }).catch(console.error);
+    }
+
+    function saveShortLink() {
+      const name = document.getElementById('shortName').value.trim();
+      const url = document.getElementById('redirectURL').value.trim();
+      if (!name || !url) return alert("Both fields are required.");
+      localStorage.setItem("short_" + name, url);
+      document.getElementById('shortLinkOutput').value = location.origin + "/#short_" + name;
     }
 
     function truncate(str, maxLength) {
@@ -221,6 +236,13 @@
           `;
         } else {
           document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>404 - Lua Script Not Found</h2>";
+        }
+      } else if (hash.startsWith("short_")) {
+        const url = localStorage.getItem(hash);
+        if (url) {
+          location.href = url;
+        } else {
+          document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>404 - Short Link Not Found</h2>";
         }
       }
     });
