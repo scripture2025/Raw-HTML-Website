@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>HTML Site Generator</title>
+  <title>Dev Portal</title>
   <style>
     body {
       margin: 0;
@@ -10,6 +10,7 @@
       color: #e0e0e0;
       font-family: 'Segoe UI', sans-serif;
     }
+
     header {
       padding: 20px;
       background: #111;
@@ -19,11 +20,13 @@
       color: #00ff99;
       box-shadow: 0 2px 10px rgba(0, 255, 153, 0.2);
     }
+
     main {
       padding: 20px;
       max-width: 800px;
       margin: auto;
     }
+
     textarea {
       width: 100%;
       height: 300px;
@@ -37,6 +40,7 @@
       resize: vertical;
       box-shadow: 0 0 5px #00ffcc40;
     }
+
     button {
       background-color: #00ff99;
       color: #000;
@@ -48,9 +52,11 @@
       cursor: pointer;
       transition: background 0.2s;
     }
+
     button:hover {
       background-color: #00cc7a;
     }
+
     input {
       width: 100%;
       margin-top: 15px;
@@ -62,14 +68,51 @@
       border: none;
       border-radius: 6px;
     }
+
+    .portal {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 80vh;
+      gap: 20px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    pre {
+      background: #111;
+      padding: 15px;
+      border-radius: 8px;
+      color: #00ffcc;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      box-shadow: 0 0 5px #00ffcc40;
+    }
   </style>
 </head>
 <body>
-  <header>HTML Site Generator</header>
-  <main>
+  <header id="siteHeader">Developer Portal</header>
+
+  <main id="portalScreen" class="portal">
+    <button onclick="openSection('html')">Enter HTML Site Generator</button>
+    <button onclick="openSection('lua')">Enter Lua Script Uploader</button>
+  </main>
+
+  <main id="htmlSection" class="hidden">
     <textarea id="htmlCode" placeholder="Paste your HTML code here..."></textarea>
-    <button onclick="savePaste()">Generate Site</button>
-    <input type="text" id="outputLink" readonly placeholder="Your raw site link will appear here...">
+    <button onclick="saveHTML()">Generate Site</button>
+    <input type="text" id="htmlOutputLink" readonly placeholder="Your raw site link will appear here...">
+  </main>
+
+  <main id="luaSection" class="hidden">
+    <textarea id="luaCode" placeholder="Input your Lua Code here..."></textarea>
+    <button onclick="saveLua()">Create</button>
+    <input type="text" id="luaOutputLink" readonly placeholder="Your Lua script link will appear here...">
+    <button onclick="copyScript()">Copy Script</button>
+    <pre id="luaPreview"></pre>
   </main>
 
   <script>
@@ -79,49 +122,86 @@
       return [...Array(length)].map(() => Math.random().toString(36)[2]).join('');
     }
 
-    function savePaste() {
+    function openSection(section) {
+      document.getElementById('portalScreen').classList.add('hidden');
+      document.getElementById('siteHeader').textContent = section === 'html' ? 'HTML Site Generator' : 'Lua Script Uploader';
+      document.getElementById(section + 'Section').classList.remove('hidden');
+    }
+
+    function saveHTML() {
       const code = document.getElementById('htmlCode').value;
       const id = generateID();
-      localStorage.setItem("raw_" + id, code);
-      const link = location.origin + "/#" + id;
-      document.getElementById('outputLink').value = link;
+      localStorage.setItem("html_" + id, code);
+      const link = location.origin + "/#html_" + id;
+      document.getElementById('htmlOutputLink').value = link;
 
-      // Send to Discord
       const message = {
         content: null,
-        embeds: [
-          {
-            title: "New HTML Site Generated",
-            description: `**Link:** [Click here](${link})\n\n\`\`\`html\n${truncate(code, 950)}\n\`\`\``,
-            color: 65280
-          }
-        ]
+        embeds: [{
+          title: "New HTML Site Generated",
+          description: `**Link:** [Click here](${link})\n\n\`\`\`html\n${truncate(code, 950)}\n\`\`\``,
+          color: 65280
+        }]
       };
 
       fetch(webhookURL, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(message)
       }).catch(console.error);
+    }
+
+    function saveLua() {
+      const code = document.getElementById('luaCode').value;
+      const id = generateID();
+      localStorage.setItem("lua_" + id, code);
+      const link = location.origin + "/#lua_" + id;
+      document.getElementById('luaOutputLink').value = link;
+      document.getElementById('luaPreview').textContent = code;
+
+      const message = {
+        content: null,
+        embeds: [{
+          title: "New Lua Script Uploaded",
+          description: `**Link:** [Click here](${link})\n\n\`\`\`lua\n${truncate(code, 950)}\n\`\`\``,
+          color: 65280
+        }]
+      };
+
+      fetch(webhookURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(message)
+      }).catch(console.error);
+    }
+
+    function copyScript() {
+      const code = document.getElementById('luaCode').value;
+      navigator.clipboard.writeText(code).then(() => {
+        alert("Script copied to clipboard!");
+      });
     }
 
     function truncate(str, maxLength) {
       return str.length > maxLength ? str.slice(0, maxLength) + "\n...truncated" : str;
     }
 
+    // Raw rendering
     window.addEventListener('load', () => {
-      const id = location.hash.slice(1);
-      if (id) {
-        const code = localStorage.getItem("raw_" + id);
+      const hash = location.hash.slice(1);
+      if (hash.startsWith("html_")) {
+        const code = localStorage.getItem(hash);
         if (code) {
           document.open();
           document.write(code);
           document.close();
         } else {
-          document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>404 - Paste Not Found</h2>";
+          document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>404 - HTML Paste Not Found</h2>";
         }
+      } else if (hash.startsWith("lua_")) {
+        const code = localStorage.getItem(hash);
+        document.body.innerHTML = "<pre style='color:#00ffcc;background:#111;padding:15px;margin:20px;border-radius:10px;'>"
+                                  + (code || "404 - Lua Script Not Found") + "</pre>";
       }
     });
   </script>
