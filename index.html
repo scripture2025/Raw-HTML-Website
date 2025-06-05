@@ -65,13 +65,15 @@
     }
 
     .notes {
-      margin-top: 20px;
+      margin: 20px auto;
       font-style: italic;
       color: #80ffd3;
       background: #141414;
       padding: 10px 15px;
       border-radius: 6px;
       box-shadow: 0 0 5px #00ffcc40;
+      text-align: center;
+      max-width: 800px;
     }
 
     input {
@@ -207,6 +209,7 @@
         if (code) {
           document.body.innerHTML = `
             <header>Lua Script</header>
+            <div class="notes">Notes: Copy the Script and Execute it on your Executor!</div>
             <main>
               <div class="top-buttons">
                 <button onclick="copyLua()">Copy Script</button>
@@ -214,7 +217,6 @@
                 <button onclick="location.href='https://scriptsrblx.netlify.app'">Best Pastebin Copy</button>
               </div>
               <pre id="luaDisplay">${code.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>
-              <div class="notes">Notes: Copy the Script and Execute it on your Executor!</div>
             </main>
           `;
         } else {
