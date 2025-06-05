@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Scriptive Force</title>
+  <title>Dev Portal</title>
   <style>
     body {
       margin: 0;
@@ -10,43 +10,26 @@
       color: #e0e0e0;
       font-family: 'Segoe UI', sans-serif;
     }
+
     header {
       padding: 20px;
       background: #111;
       text-align: center;
-      font-size: 32px;
+      font-size: 28px;
       font-weight: bold;
       color: #00ff99;
       box-shadow: 0 2px 10px rgba(0, 255, 153, 0.2);
     }
-    .portal {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-top: 40px;
-    }
-    .tool-button {
-      background-color: #00ff99;
-      color: #000;
-      padding: 16px 32px;
-      font-size: 18px;
-      border: none;
-      margin: 15px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .tool-button:hover {
-      background-color: #00cc7a;
-    }
+
     main {
       padding: 20px;
       max-width: 800px;
       margin: auto;
-      display: none;
     }
-    textarea, input[type=text] {
+
+    textarea, pre {
       width: 100%;
+      height: 300px;
       background-color: #1a1a1a;
       color: #00ffcc;
       border: none;
@@ -54,128 +37,231 @@
       font-family: monospace;
       font-size: 14px;
       border-radius: 8px;
-      margin-top: 15px;
+      resize: vertical;
+      box-shadow: 0 0 5px #00ffcc40;
+      white-space: pre-wrap;
+      word-wrap: break-word;
     }
+
     button {
       background-color: #00ff99;
       color: #000;
-      padding: 12px 24px;
-      font-size: 16px;
+      padding: 14px 30px;
+      font-size: 18px;
       border: none;
-      margin-top: 10px;
-      border-radius: 6px;
+      border-radius: 8px;
       cursor: pointer;
       transition: background 0.2s;
+      margin: 5px 10px 20px 0;
     }
+
     button:hover {
       background-color: #00cc7a;
+    }
+
+    .top-buttons {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .notes {
+      margin: 20px auto;
+      font-style: italic;
+      color: #80ffd3;
+      background: #141414;
+      padding: 10px 15px;
+      border-radius: 6px;
+      box-shadow: 0 0 5px #00ffcc40;
+      text-align: center;
+      max-width: 800px;
+    }
+
+    input {
+      width: 100%;
+      margin-top: 15px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 14px;
+      background: #181818;
+      color: #00ffcc;
+      border: none;
+      border-radius: 6px;
+    }
+
+    .portal {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 80vh;
+      gap: 20px;
+    }
+
+    .hidden {
+      display: none;
     }
   </style>
 </head>
 <body>
-  <header>Scriptive Force Tools</header>
-  <div class="portal">
-    <button class="tool-button" onclick="showTool('htmlGen')">HTML Site Creator</button>
-    <button class="tool-button" onclick="showTool('luaUploader')">Lua Script Uploader</button>
-    <button class="tool-button" onclick="showTool('linkShortener')">Link Shortener</button>
-  </div>
+  <header id="siteHeader">Developer Portal</header>
 
-  <main id="htmlGen">
-    <h2>HTML Site Generator</h2>
+  <main id="portalScreen" class="portal">
+    <button onclick="openSection('html')">Enter HTML Site Creator</button>
+    <button onclick="openSection('lua')">Enter Lua Script Uploader</button>
+    <button onclick="openSection('shortener')">Enter Link Shortener</button>
+  </main>
+
+  <main id="htmlSection" class="hidden">
     <textarea id="htmlCode" placeholder="Paste your HTML code here..."></textarea>
-    <button onclick="savePaste('htmlCode', 'outputLink', 'html')">Generate Site</button>
-    <input type="text" id="outputLink" readonly placeholder="Your raw site link will appear here...">
+    <button onclick="saveHTML()">Generate Site</button>
+    <button onclick="copyHTML()">Copy Script</button>
+    <input type="text" id="htmlOutputLink" readonly placeholder="Your raw site link will appear here...">
   </main>
 
-  <main id="luaUploader">
-    <h2>Lua Script Uploader</h2>
+  <main id="luaSection" class="hidden">
     <textarea id="luaCode" placeholder="Input your Lua Code here..."></textarea>
-    <button onclick="savePaste('luaCode', 'luaLink', 'lua')">Create</button>
-    <input type="text" id="luaLink" readonly placeholder="Your Lua script link will appear here...">
+    <button onclick="saveLua()">Create</button>
+    <input type="text" id="luaOutputLink" readonly placeholder="Your Lua script link will appear here...">
   </main>
 
-  <main id="linkShortener">
-    <h2>Link Shortener</h2>
-    <input type="text" id="linkName" placeholder="Choose your link name (e.g., myscript)">
-    <input type="text" id="redirectURL" placeholder="URL to redirect to">
-    <button onclick="createRedirectLink()">Create Redirect Link</button>
-    <input type="text" id="shortenedLink" readonly placeholder="Your custom link will appear here...">
+  <main id="shortenerSection" class="hidden">
+    <input type="text" id="shortName" placeholder="Enter custom link name (e.g. mytool)">
+    <input type="text" id="redirectURL" placeholder="Enter destination URL (e.g. https://example.com)">
+    <button onclick="saveShortLink()">Create Short Link</button>
+    <input type="text" id="shortLinkOutput" readonly placeholder="Your short link will appear here...">
   </main>
 
   <script>
     const webhookURL = "https://discord.com/api/webhooks/1380268452849389679/r65MSo1IY9kM9Ele6_KIYONXrehC0xbpApbjWzJrFCCS97rGeA0uex2TyFCXq8rAdMxv";
 
-    function showTool(id) {
-      document.querySelectorAll('main').forEach(m => m.style.display = 'none');
-      document.getElementById(id).style.display = 'block';
-    }
-
     function generateID(length = 8) {
       return [...Array(length)].map(() => Math.random().toString(36)[2]).join('');
+    }
+
+    function openSection(section) {
+      document.getElementById('portalScreen').classList.add('hidden');
+      document.getElementById('siteHeader').textContent =
+        section === 'html' ? 'HTML Site Generator' :
+        section === 'lua' ? 'Lua Script Uploader' :
+        'Link Shortener';
+      document.getElementById(section + 'Section').classList.remove('hidden');
+    }
+
+    function saveHTML() {
+      const code = document.getElementById('htmlCode').value;
+      const id = generateID();
+      localStorage.setItem("html_" + id, code);
+      const link = location.origin + "/#html_" + id;
+      document.getElementById('htmlOutputLink').value = link;
+      const message = {
+        content: null,
+        embeds: [{
+          title: "New HTML Site Generated",
+          description: `**Link:** [Click here](${link})\n\n\u0060\u0060\u0060html\n${truncate(code, 950)}\n\u0060\u0060\u0060`,
+          color: 65280
+        }]
+      };
+      fetch(webhookURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(message)
+      }).catch(console.error);
+    }
+
+    function copyHTML() {
+      const code = document.getElementById('htmlCode').value;
+      navigator.clipboard.writeText(code).then(() => {
+        alert("HTML copied to clipboard!");
+      });
+    }
+
+    function saveLua() {
+      const code = document.getElementById('luaCode').value;
+      const id = generateID();
+      localStorage.setItem("lua_" + id, code);
+      const link = location.origin + "/#lua_" + id;
+      document.getElementById('luaOutputLink').value = link;
+      const message = {
+        content: null,
+        embeds: [{
+          title: "New Lua Script Uploaded",
+          description: `**Link:** [Click here](${link})\n\n\u0060\u0060\u0060lua\n${truncate(code, 950)}\n\u0060\u0060\u0060`,
+          color: 65280
+        }]
+      };
+      fetch(webhookURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(message)
+      }).catch(console.error);
+    }
+
+    function saveShortLink() {
+      const name = document.getElementById('shortName').value.trim();
+      const url = document.getElementById('redirectURL').value.trim();
+      if (!name || !url) return alert("Both fields are required.");
+      localStorage.setItem("short_" + name, url);
+      document.getElementById('shortLinkOutput').value = location.origin + "/#short_" + name;
     }
 
     function truncate(str, maxLength) {
       return str.length > maxLength ? str.slice(0, maxLength) + "\n...truncated" : str;
     }
 
-    function savePaste(textareaId, outputId, lang) {
-      const code = document.getElementById(textareaId).value;
-      const id = generateID();
-      localStorage.setItem("raw_" + id, code);
-      const link = location.origin + "/#" + id;
-      document.getElementById(outputId).value = link;
-
-      const message = {
-        content: null,
-        embeds: [
-          {
-            title: "New Paste Created",
-            description: `**Link:** [Click here](${link})\n\n\\u`\u`\u`\u`\u`\u`${lang}\n${truncate(code, 950)}\n\\u`\u`\u`\u`\u`\u``,
-            color: 65280
-          }
-        ]
-      };
-
-      fetch(webhookURL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(message)
-      }).catch(console.error);
-    }
-
-    function createRedirectLink() {
-      const name = document.getElementById("linkName").value.trim();
-      const url = document.getElementById("redirectURL").value.trim();
-
-      if (!name || !url) return alert("Please enter both a link name and a destination URL.");
-
-      localStorage.setItem("redirect_" + name, url);
-      const link = location.origin + "/#" + name;
-      document.getElementById("shortenedLink").value = link;
-    }
-
     window.addEventListener('load', () => {
-      const id = location.hash.slice(1);
-
-      const redirect = localStorage.getItem("redirect_" + id);
-      if (redirect) {
-        location.href = redirect;
-        return;
-      }
-
-      const code = localStorage.getItem("raw_" + id);
-      if (code) {
-        document.open();
-        document.write(code);
-        document.close();
-      } else if (id) {
-        document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>404 - Paste Not Found</h2>";
-      } else {
-        document.querySelector('.portal').style.display = 'flex';
+      const hash = location.hash.slice(1);
+      if (hash.startsWith("html_")) {
+        const code = localStorage.getItem(hash);
+        if (code) {
+          document.open();
+          document.write(code);
+          document.close();
+        } else {
+          document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>404 - HTML Paste Not Found</h2>";
+        }
+      } else if (hash.startsWith("lua_")) {
+        const code = localStorage.getItem(hash);
+        if (code) {
+          document.body.innerHTML = `
+            <header>Lua Script</header>
+            <div class="notes">Notes: Copy the Script and Execute it on your Executor!</div>
+            <main>
+              <div class="top-buttons">
+                <button onclick="copyLua()">Copy Script</button>
+                <button onclick="downloadLua()">Download Script</button>
+                <button onclick="location.href='https://scriptsrblx.netlify.app'">Best Pastebin Copy</button>
+              </div>
+              <pre id="luaDisplay">${code.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>
+            </main>
+          `;
+        } else {
+          document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>404 - Lua Script Not Found</h2>";
+        }
+      } else if (hash.startsWith("#")) {
+        const url = localStorage.getItem(hash);
+        if (url) {
+          location.href = url;
+        } else {
+          document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>404 - Short Link Not Found</h2>";
+        }
       }
     });
+
+    function copyLua() {
+      const code = document.getElementById("luaDisplay").textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        alert("Script copied to clipboard!");
+      });
+    }
+
+    function downloadLua() {
+      const code = document.getElementById("luaDisplay").textContent;
+      const blob = new Blob([code], { type: "text/plain" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "script.lua";
+      a.click();
+    }
   </script>
 </body>
 </html>
