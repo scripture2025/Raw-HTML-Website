@@ -104,6 +104,7 @@
   <main id="htmlSection" class="hidden">
     <textarea id="htmlCode" placeholder="Paste your HTML code here..."></textarea>
     <button onclick="saveHTML()">Generate Site</button>
+    <button onclick="copyHTML()">Copy Script</button>
     <input type="text" id="htmlOutputLink" readonly placeholder="Your raw site link will appear here...">
   </main>
 
@@ -111,8 +112,6 @@
     <textarea id="luaCode" placeholder="Input your Lua Code here..."></textarea>
     <button onclick="saveLua()">Create</button>
     <input type="text" id="luaOutputLink" readonly placeholder="Your Lua script link will appear here...">
-    <button onclick="copyScript()">Copy Script</button>
-    <pre id="luaPreview"></pre>
   </main>
 
   <script>
@@ -151,13 +150,19 @@
       }).catch(console.error);
     }
 
+    function copyHTML() {
+      const code = document.getElementById('htmlCode').value;
+      navigator.clipboard.writeText(code).then(() => {
+        alert("Script copied to clipboard, execute it on your Executor!");
+      });
+    }
+
     function saveLua() {
       const code = document.getElementById('luaCode').value;
       const id = generateID();
       localStorage.setItem("lua_" + id, code);
       const link = location.origin + "/#lua_" + id;
       document.getElementById('luaOutputLink').value = link;
-      document.getElementById('luaPreview').textContent = code;
 
       const message = {
         content: null,
@@ -175,18 +180,10 @@
       }).catch(console.error);
     }
 
-    function copyScript() {
-      const code = document.getElementById('luaCode').value;
-      navigator.clipboard.writeText(code).then(() => {
-        alert("Script copied to clipboard!");
-      });
-    }
-
     function truncate(str, maxLength) {
       return str.length > maxLength ? str.slice(0, maxLength) + "\n...truncated" : str;
     }
 
-    // Raw rendering
     window.addEventListener('load', () => {
       const hash = location.hash.slice(1);
       if (hash.startsWith("html_")) {
