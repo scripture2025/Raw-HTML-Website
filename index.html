@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Dev Portal</title>
+  <title>Scriptive Force Tools</title>
   <style>
     body {
       margin: 0;
@@ -103,7 +103,7 @@
   </style>
 </head>
 <body>
-  <header id="siteHeader">Developer Portal</header>
+  <header id="siteHeader">Tools</header>
 
   <main id="portalScreen" class="portal">
     <button onclick="openSection('html')">Enter HTML Site Creator</button>
@@ -114,7 +114,6 @@
   <main id="htmlSection" class="hidden">
     <textarea id="htmlCode" placeholder="Paste your HTML code here..."></textarea>
     <button onclick="saveHTML()">Generate Site</button>
-    <button onclick="copyHTML()">Copy Script</button>
     <input type="text" id="htmlOutputLink" readonly placeholder="Your raw site link will appear here...">
   </main>
 
@@ -166,13 +165,6 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(message)
       }).catch(console.error);
-    }
-
-    function copyHTML() {
-      const code = document.getElementById('htmlCode').value;
-      navigator.clipboard.writeText(code).then(() => {
-        alert("HTML copied to clipboard!");
-      });
     }
 
     function saveLua() {
@@ -237,7 +229,7 @@
         } else {
           document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>404 - Lua Script Not Found</h2>";
         }
-      } else if (hash.startsWith("#")) {
+      } else if (hash.startsWith("short_")) {
         const url = localStorage.getItem(hash);
         if (url) {
           location.href = url;
