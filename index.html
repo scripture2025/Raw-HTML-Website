@@ -24,9 +24,9 @@
       max-width: 800px;
       margin: auto;
     }
-    textarea, pre {
+    textarea, pre, input[type="text"], input[type="url"] {
       width: 100%;
-      height: 300px;
+      height: 100px;
       background-color: #1a1a1a;
       color: #00ffcc;
       border: none;
@@ -38,6 +38,12 @@
       box-shadow: 0 0 5px #00ffcc40;
       white-space: pre-wrap;
       word-wrap: break-word;
+      margin-top: 10px;
+      box-sizing: border-box;
+    }
+    pre {
+      height: auto;
+      white-space: pre-wrap;
     }
     button {
       background-color: #00ff99;
@@ -68,17 +74,6 @@
       text-align: center;
       max-width: 800px;
     }
-    input {
-      width: 100%;
-      margin-top: 15px;
-      padding: 12px;
-      font-family: monospace;
-      font-size: 14px;
-      background: #181818;
-      color: #00ffcc;
-      border: none;
-      border-radius: 6px;
-    }
     .portal {
       display: flex;
       flex-direction: column;
@@ -90,6 +85,19 @@
     .hidden {
       display: none;
     }
+    label {
+      display: block;
+      margin-top: 10px;
+      color: #00ff99;
+      font-weight: bold;
+    }
+    footer {
+      text-align: center;
+      margin: 20px;
+      color: #00ff99;
+      font-size: 12px;
+      user-select: none;
+    }
   </style>
 </head>
 <body>
@@ -99,32 +107,85 @@
     <button onclick="openSection('html')">Enter HTML Site Creator (Works 100%)</button>
     <button onclick="openSection('lua')">Enter Lua Script Uploader (Works 100%)</button>
     <button onclick="openSection('shortener')">Enter Link Shortener (Works 100%)</button>
+    <button onclick="openSection('webhooker')">Make an IP Logger! (Maybe Works)</button>
   </main>
 
   <main id="htmlSection" class="hidden">
+    <label for="htmlWebhook">Webhook URL:</label>
+    <input type="url" id="htmlWebhook" placeholder="Enter your Discord webhook URL" />
+
     <textarea id="htmlCode" placeholder="Paste your HTML code here..."></textarea>
+
+    <label for="htmlCustomWord">Custom site word:</label>
+    <input type="text" id="htmlCustomWord" placeholder="Custom word for your site link" />
+
     <button onclick="saveHTML()">Generate Site</button>
-    <input type="text" id="htmlOutputLink" readonly placeholder="Your site link will appear here...">
+    <input type="text" id="htmlOutputLink" readonly placeholder="Your site link will appear here..." />
   </main>
 
   <main id="luaSection" class="hidden">
+    <label for="luaWebhook">Webhook URL:</label>
+    <input type="url" id="luaWebhook" placeholder="Enter your Discord webhook URL" />
+
     <textarea id="luaCode" placeholder="Input your Lua Code here..."></textarea>
+
+    <label for="luaCustomWord">Custom site word:</label>
+    <input type="text" id="luaCustomWord" placeholder="Custom word for your site link" />
+
     <button onclick="saveLua()">Create</button>
-    <input type="text" id="luaOutputLink" readonly placeholder="Your Lua script link will appear here...">
+    <input type="text" id="luaOutputLink" readonly placeholder="Your Lua script link will appear here..." />
   </main>
 
   <main id="shortenerSection" class="hidden">
-    <input type="text" id="shortName" placeholder="Enter custom link name (e.g. roblox_com)">
-    <input type="text" id="redirectURL" placeholder="Enter destination URL (e.g. https://roblox.com)">
+    <label for="shortWebhook">Webhook URL:</label>
+    <input type="url" id="shortWebhook" placeholder="Enter your Discord webhook URL" />
+
+    <input type="text" id="shortName" placeholder="Enter custom link name (e.g. roblox_com)" />
+    <input type="text" id="redirectURL" placeholder="Enter destination URL (e.g. https://roblox.com)" />
+
     <button onclick="saveShortLink()">Create Short Link</button>
-    <input type="text" id="shortLinkOutput" readonly placeholder="Your short link will appear here...">
+    <input type="text" id="shortLinkOutput" readonly placeholder="Your short link will appear here..." />
   </main>
 
-  <script>
-    const webhookURL = "https://discord.com/api/webhooks/1380268452849389679/r65MSo1IY9kM9Ele6_KIYONXrehC0xbpApbjWzJrFCCS97rGeA0uex2TyFCXq8rAdMxv";
+  <main id="webhookerSection" class="hidden">
+    <label for="webhookerWebhook">Webhook URL:</label>
+    <input type="url" id="webhookerWebhook" placeholder="Enter your Discord webhook URL" />
 
-    function generateID(length = 8) {
-      return [...Array(length)].map(() => Math.random().toString(36)[2]).join('');
+    <label for="webhookerCustomWord">Custom site word:</label>
+    <input type="text" id="webhookerCustomWord" placeholder="Custom word for your webhook site" />
+
+    <label for="webhookerMessage">Webhook JSON payload (edit freely):</label>
+    <textarea id="webhookerMessage" spellcheck="false">
+{
+  "content": "Hello from my custom webhook site!",
+  "embeds": [
+    {
+      "title": "User Webhooker Message",
+      "description": "Customize this message as you want!",
+      "color": 65280
+    }
+  ]
+}
+    </textarea>
+
+    <button onclick="saveWebhooker()">Create Webhook Site</button>
+    <input type="text" id="webhookerOutputLink" readonly placeholder="Your webhook site link will appear here..." />
+    <div class="notes">
+      When users visit your webhook site, it will send this payload automatically to your webhook URL.
+    </div>
+  </main>
+
+  <footer>
+    Scripture Dev Portal - Powered by MaybeFlashh
+  </footer>
+
+  <script>
+    function sanitizeName(name) {
+      return name.replace(/[^a-zA-Z0-9_-]/g, "_").toLowerCase();
+    }
+
+    function truncate(str, maxLength) {
+      return str.length > maxLength ? str.slice(0, maxLength) + "\n...truncated" : str;
     }
 
     function openSection(section) {
@@ -132,20 +193,32 @@
       document.getElementById('siteHeader').textContent =
         section === 'html' ? 'HTML Site Generator' :
         section === 'lua' ? 'Lua Script Uploader' :
-        'Link Shortener';
+        section === 'shortener' ? 'Link Shortener' :
+        'Webhooker';
+      ['htmlSection','luaSection','shortenerSection','webhookerSection'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+      });
       document.getElementById(section + 'Section').classList.remove('hidden');
     }
 
-    function sanitizeName(name) {
-      return name.replace(/[^a-zA-Z0-9_-]/g, "_");
-    }
-
     function saveHTML() {
+      const webhookURL = document.getElementById('htmlWebhook').value.trim();
       const code = document.getElementById('htmlCode').value;
-      const id = generateID();
-      localStorage.setItem("html_" + id, code);
-      const link = location.origin + "/#html_" + id;
+      let customWord = document.getElementById('htmlCustomWord').value.trim();
+
+      if (!webhookURL) return alert("Please enter your webhook URL.");
+      if (!code) return alert("Please enter your HTML code.");
+      if (!customWord) return alert("Please enter a custom word for the site link.");
+
+      customWord = sanitizeName(customWord);
+
+      const key = `html_${customWord}`;
+      localStorage.setItem(key, JSON.stringify({ code, webhookURL }));
+
+      const link = `https://scriptsrblx.netlify.app/${customWord}`;
       document.getElementById('htmlOutputLink').value = link;
+
+      // Send webhook notification
       fetch(webhookURL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -160,11 +233,23 @@
     }
 
     function saveLua() {
+      const webhookURL = document.getElementById('luaWebhook').value.trim();
       const code = document.getElementById('luaCode').value;
-      const id = generateID();
-      localStorage.setItem("lua_" + id, code);
-      const link = location.origin + "/#lua_" + id;
+      let customWord = document.getElementById('luaCustomWord').value.trim();
+
+      if (!webhookURL) return alert("Please enter your webhook URL.");
+      if (!code) return alert("Please enter your Lua code.");
+      if (!customWord) return alert("Please enter a custom word for the site link.");
+
+      customWord = sanitizeName(customWord);
+
+      const key = `lua_${customWord}`;
+      localStorage.setItem(key, JSON.stringify({ code, webhookURL }));
+
+      const link = `https://scriptsrblx.netlify.app/${customWord}`;
       document.getElementById('luaOutputLink').value = link;
+
+      // Send webhook notification
       fetch(webhookURL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -179,54 +264,143 @@
     }
 
     function saveShortLink() {
+      let webhookURL = document.getElementById('shortWebhook').value.trim();
       let name = document.getElementById('shortName').value.trim();
       const url = document.getElementById('redirectURL').value.trim();
+
+      if (!webhookURL) return alert("Please enter your webhook URL.");
       if (!name || !url) return alert("Both fields are required.");
+
       name = sanitizeName(name);
-      localStorage.setItem("short_" + name, url);
-      document.getElementById('shortLinkOutput').value = location.origin + "/#short_" + name;
+
+      const key = `short_${name}`;
+      localStorage.setItem(key, JSON.stringify({ url, webhookURL }));
+
+      const link = `https://scriptsrblx.netlify.app/${name}`;
+      document.getElementById('shortLinkOutput').value = link;
+
+      // Send webhook notification
+      fetch(webhookURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          embeds: [{
+            title: "New Short Link Created",
+            description: `**Link:** [Click here](${link})\n\nRedirects to: ${url}`,
+            color: 65280
+          }]
+        })
+      }).catch(console.error);
     }
 
-    function truncate(str, maxLength) {
-      return str.length > maxLength ? str.slice(0, maxLength) + "\n...truncated" : str;
+    function saveWebhooker() {
+      const webhookURL = document.getElementById('webhookerWebhook').value.trim();
+      const customWord = sanitizeName(document.getElementById('webhookerCustomWord').value.trim());
+      const rawMsg = document.getElementById('webhookerMessage').value.trim();
+
+      if (!webhookURL) return alert("Please enter your webhook URL.");
+      if (!customWord) return alert("Please enter a custom word for your webhook site.");
+      if (!rawMsg) return alert("Please enter your webhook JSON payload.");
+
+      // Validate JSON
+      let jsonPayload;
+      try {
+        jsonPayload = JSON.parse(rawMsg);
+      } catch(e) {
+        return alert("Invalid JSON payload. Please fix it.");
+      }
+
+      const key = `webhooker_${customWord}`;
+      localStorage.setItem(key, JSON.stringify({ webhookURL, jsonPayload }));
+
+      const link = `https://scriptsrblx.netlify.app/${customWord}`;
+      document.getElementById('webhookerOutputLink').value = link;
+
+      alert("Webhook site created! Visit the link to send your message.");
     }
 
+    // On load, check the path and serve content accordingly
     window.addEventListener('load', () => {
-      const hash = location.hash.slice(1);
-      if (hash.startsWith("html_")) {
-        const code = localStorage.getItem(hash);
-        if (code) {
-          document.open();
-          document.write(code);
-          document.close();
-        } else {
-          document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>404 - HTML Paste Not Found</h2>";
+      const path = location.pathname.slice(1).toLowerCase(); // Remove leading slash
+
+      if (!path) return; // no path, show default portal
+
+      // Try to find a matching key in localStorage
+      let found = false;
+
+      for (let i=0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (!key) continue;
+
+        if (key.endsWith("_" + path)) {
+          const stored = localStorage.getItem(key);
+          if (!stored) break;
+          const data = JSON.parse(stored);
+
+          if (key.startsWith("html_")) {
+            // Show HTML content (write code directly)
+            document.open();
+            document.write(data.code);
+            document.close();
+            found = true;
+            break;
+          } else if (key.startsWith("lua_")) {
+            // Show Lua code in a formatted page
+            document.body.innerHTML = `
+              <header>Lua Script</header>
+              <div class="notes">Notes: Copy the Script and Execute it on your Executor!</div>
+              <main>
+                <div class="top-buttons">
+                  <button onclick="copyLua()">Copy Script</button>
+                  <button onclick="downloadLua()">Download Script</button>
+                </div>
+                <pre id="luaDisplay">${data.code.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>
+              </main>
+            `;
+            found = true;
+            break;
+          } else if (key.startsWith("short_")) {
+            // Redirect
+            location.replace(data.url);
+            found = true;
+            break;
+          } else if (key.startsWith("webhooker_")) {
+            // Show loading message and send webhook automatically
+            document.body.innerHTML = `
+              <header style="text-align:center; padding:20px; background:#111; color:#00ff99; font-size:24px;">Webhooker Site</header>
+              <main style="padding:20px; text-align:center; font-family: monospace; color:#00ff99;">
+                <p>Sending your webhook message automatically...</p>
+                <pre id="jsonPayload" style="background:#222; padding:15px; border-radius:10px; text-align:left; max-width:600px; margin: auto;">${JSON.stringify(data.jsonPayload, null, 2)}</pre>
+                <p id="statusMessage">Please wait...</p>
+              </main>
+            `;
+
+            // Send webhook POST
+            fetch(data.webhookURL, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(data.jsonPayload)
+            })
+            .then(res => {
+              if (res.ok) {
+                document.getElementById("statusMessage").textContent = "Message sent successfully!";
+              } else {
+                document.getElementById("statusMessage").textContent = `Failed to send message. HTTP status: ${res.status}`;
+              }
+            })
+            .catch(err => {
+              document.getElementById("statusMessage").textContent = "Error sending webhook: " + err.message;
+            });
+
+            found = true;
+            break;
+          }
         }
-      } else if (hash.startsWith("lua_")) {
-        const code = localStorage.getItem(hash);
-        if (code) {
-          document.body.innerHTML = `
-            <header>Lua Script</header>
-            <div class="notes">Notes: Copy the Script and Execute it on your Executor!</div>
-            <main>
-              <div class="top-buttons">
-                <button onclick="copyLua()">Copy Script</button>
-                <button onclick="downloadLua()">Download Script</button>
-              </div>
-              <pre id="luaDisplay">${code.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>
-            </main>
-          `;
-        } else {
-          document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>404 - Lua Script Not Found</h2>";
-        }
-      } else if (hash.startsWith("short_")) {
-        const key = hash.replace(/[^a-zA-Z0-9_-]/g, "_"); // safely format it
-        const url = localStorage.getItem(key);
-        if (url) {
-          location.replace(url);
-        } else {
-          document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>404 - Short Link Not Found</h2>";
-        }
+      }
+
+      if (!found && path) {
+        // Show 404
+        document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>404 - Page Not Found</h2>";
       }
     });
 
