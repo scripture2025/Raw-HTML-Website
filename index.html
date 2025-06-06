@@ -90,6 +90,18 @@
     .hidden {
       display: none;
     }
+    .section {
+      max-width: 800px;
+      margin: 30px auto;
+      padding: 20px;
+      background: #1a1a1a;
+      border-radius: 8px;
+      box-shadow: 0 0 5px #00ffcc40;
+    }
+    .output {
+      margin-top: 10px;
+      white-space: pre-wrap;
+    }
   </style>
 </head>
 <body>
@@ -99,25 +111,65 @@
     <button onclick="openSection('html')">Enter HTML Site Creator (Works 100%)</button>
     <button onclick="openSection('lua')">Enter Lua Script Uploader (Works 100%)</button>
     <button onclick="openSection('shortener')">Enter Link Shortener (Works 100%)</button>
+    <button onclick="openSection('webhooks')">Enter Discord Webhook Tools</button>
   </main>
 
+  <!-- HTML Creator -->
   <main id="htmlSection" class="hidden">
     <textarea id="htmlCode" placeholder="Paste your HTML code here..."></textarea>
     <button onclick="saveHTML()">Generate Site</button>
     <input type="text" id="htmlOutputLink" readonly placeholder="Your site link will appear here...">
   </main>
 
+  <!-- Lua Uploader -->
   <main id="luaSection" class="hidden">
     <textarea id="luaCode" placeholder="Input your Lua Code here..."></textarea>
     <button onclick="saveLua()">Create</button>
     <input type="text" id="luaOutputLink" readonly placeholder="Your Lua script link will appear here...">
   </main>
 
+  <!-- Link Shortener -->
   <main id="shortenerSection" class="hidden">
     <input type="text" id="shortName" placeholder="Enter custom link name (e.g. roblox_com)">
     <input type="text" id="redirectURL" placeholder="Enter destination URL (e.g. https://roblox.com)">
     <button onclick="saveShortLink()">Create Short Link</button>
     <input type="text" id="shortLinkOutput" readonly placeholder="Your short link will appear here...">
+  </main>
+
+  <!-- Webhook Tools -->
+  <main id="webhooksSection" class="hidden">
+    <div class="section">
+      <h2>Webhook Sender</h2>
+      <input id="sendURL" placeholder="Webhook URL">
+      <input id="sendUsername" placeholder="Username (optional)">
+      <input id="sendAvatar" placeholder="Avatar URL (optional)">
+      <textarea id="sendContent" placeholder="Message content"></textarea>
+      <button onclick="sendWebhook()">Send Message</button>
+    </div>
+
+    <div class="section">
+      <h2>Webhook Deleter</h2>
+      <input id="deleteURL" placeholder="Webhook URL">
+      <button onclick="deleteWebhook()">Delete Webhook</button>
+    </div>
+
+    <div class="section">
+      <h2>Webhook Info Fetcher</h2>
+      <input id="infoURL" placeholder="Webhook URL">
+      <button onclick="fetchWebhookInfo()">Fetch Info</button>
+      <div id="infoOutput" class="output"></div>
+    </div>
+
+    <div class="section">
+      <h2>Webhook Spammer (Max 1000)</h2>
+      <input id="spamURL" placeholder="Webhook URL">
+      <textarea id="spamContent" placeholder="Spam message"></textarea>
+      <input id="spamCount" type="number" min="1" max="1000" placeholder="How many times (1–1000)">
+      <div>
+        <button onclick="spamWebhook()">Start Spamming</button>
+        <button onclick="stopSpamming()">Stop Spamming</button>
+      </div>
+    </div>
   </main>
 
   <script>
@@ -128,16 +180,21 @@
     }
 
     function openSection(section) {
-      document.getElementById('portalScreen').classList.add('hidden');
+      document.querySelectorAll('main').forEach(m => m.classList.add('hidden'));
+      document.getElementById(section + 'Section').classList.remove('hidden');
       document.getElementById('siteHeader').textContent =
         section === 'html' ? 'HTML Site Generator' :
         section === 'lua' ? 'Lua Script Uploader' :
-        'Link Shortener';
-      document.getElementById(section + 'Section').classList.remove('hidden');
+        section === 'shortener' ? 'Link Shortener' :
+        'Discord Webhook Tools';
     }
 
     function sanitizeName(name) {
       return name.replace(/[^a-zA-Z0-9_-]/g, "_");
+    }
+
+    function truncate(str, maxLength) {
+      return str.length > maxLength ? str.slice(0, maxLength) + "\n...truncated" : str;
     }
 
     function saveHTML() {
@@ -187,17 +244,77 @@
       document.getElementById('shortLinkOutput').value = location.origin + "/#short_" + name;
     }
 
-    function truncate(str, maxLength) {
-      return str.length > maxLength ? str.slice(0, maxLength) + "\n...truncated" : str;
+    // Webhook Tools
+    function sendWebhook() {
+      const url = document.getElementById('sendURL').value;
+      const content = document.getElementById('sendContent').value;
+      const username = document.getElementById('sendUsername').value;
+      const avatar = document.getElementById('sendAvatar').value;
+      fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content,
+          username: username || undefined,
+          avatar_url: avatar || undefined
+        })
+      }).then(() => alert('Message sent!')).catch(err => alert('Error: ' + err));
     }
 
+    function deleteWebhook() {
+      const url = document.getElementById('deleteURL').value;
+      fetch(url, { method: 'DELETE' })
+        .then(() => alert('Webhook deleted!'))
+        .catch(err => alert('Error: ' + err));
+    }
+
+    function fetchWebhookInfo() {
+      const url = document.getElementById('infoURL').value;
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById('infoOutput').textContent =
+            `Name: ${data.name}\nChannel ID: ${data.channel_id}\nGuild ID: ${data.guild_id}\nAvatar: ${data.avatar}`;
+        })
+        .catch(err => document.getElementById('infoOutput').textContent = 'Error: ' + err);
+    }
+
+    let spamInterval;
+
+    function spamWebhook() {
+      const url = document.getElementById('spamURL').value;
+      const content = document.getElementById('spamContent').value;
+      const count = parseInt(document.getElementById('spamCount').value);
+      if (!url || !content || isNaN(count) || count < 1 || count > 1000) return alert("Fill all fields correctly.");
+
+      let i = 0;
+      spamInterval = setInterval(() => {
+        if (i >= count) {
+          clearInterval(spamInterval);
+          return;
+        }
+        fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content })
+        });
+        i++;
+      }, 800);
+    }
+
+    function stopSpamming() {
+      clearInterval(spamInterval);
+      alert("Stopped spamming.");
+    }
+
+    // Handle #hash loading
     window.addEventListener('load', () => {
       const hash = location.hash.slice(1);
       if (hash.startsWith("html_")) {
         const code = localStorage.getItem(hash);
         if (code) {
           document.open();
-          document.write(code);
+          document.write(decodeURIComponent(escape(code)));
           document.close();
         } else {
           document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>404 - HTML Paste Not Found</h2>";
@@ -220,7 +337,7 @@
           document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>404 - Lua Script Not Found</h2>";
         }
       } else if (hash.startsWith("short_")) {
-        const key = hash.replace(/[^a-zA-Z0-9_-]/g, "_"); // safely format it
+        const key = hash.replace(/[^a-zA-Z0-9_-]/g, "_");
         const url = localStorage.getItem(key);
         if (url) {
           location.replace(url);
