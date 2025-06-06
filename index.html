@@ -90,6 +90,60 @@
     .hidden {
       display: none;
     }
+    /* New styles for More Tools tab */
+    #moreToolsSection ul {
+      list-style: none;
+      padding-left: 0;
+      max-width: 600px;
+      margin: auto;
+    }
+    #moreToolsSection li {
+      background: #141414;
+      margin: 8px 0;
+      padding: 12px 20px;
+      border-radius: 6px;
+      border-left: 4px solid #00ff99;
+      box-shadow: 0 0 5px #00ffcc40;
+      transition: background 0.3s;
+    }
+    #moreToolsSection li:not(:last-child) {
+      border-bottom: 1px solid #222;
+    }
+    #moreToolsSection li:hover {
+      background: #1a1a1a;
+    }
+    #moreToolsSection a {
+      color: #00ff99;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 18px;
+      display: block;
+    }
+    #moreToolsSection label {
+      font-size: 24px;
+      font-weight: bold;
+      color: #00ff99;
+      margin-bottom: 20px;
+      display: block;
+      text-align: center;
+      letter-spacing: 1.5px;
+    }
+    /* Back button styling */
+    .back-btn {
+      background-color: #008855;
+      color: #000;
+      padding: 12px 25px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: background 0.2s;
+      display: inline-block;
+    }
+    .back-btn:hover {
+      background-color: #006644;
+    }
   </style>
 </head>
 <body>
@@ -99,25 +153,40 @@
     <button onclick="openSection('html')">Enter HTML Site Creator (Works 100%)</button>
     <button onclick="openSection('lua')">Enter Lua Script Uploader (Works 100%)</button>
     <button onclick="openSection('shortener')">Enter Link Shortener (❌)</button>
+    <button onclick="openSection('moreTools')">More Tools</button>
   </main>
 
   <main id="htmlSection" class="hidden">
+    <button class="back-btn" onclick="goBack()">← Back</button>
     <textarea id="htmlCode" placeholder="Paste your HTML code here..."></textarea>
     <button onclick="saveHTML()">Generate Site</button>
     <input type="text" id="htmlOutputLink" readonly placeholder="Your site link will appear here...">
   </main>
 
   <main id="luaSection" class="hidden">
+    <button class="back-btn" onclick="goBack()">← Back</button>
     <textarea id="luaCode" placeholder="Input your Lua Code here..."></textarea>
     <button onclick="saveLua()">Create</button>
     <input type="text" id="luaOutputLink" readonly placeholder="Your Lua script link will appear here...">
   </main>
 
   <main id="shortenerSection" class="hidden">
+    <button class="back-btn" onclick="goBack()">← Back</button>
     <input type="text" id="shortName" placeholder="Enter custom link name (e.g. roblox_com)">
     <input type="text" id="redirectURL" placeholder="Enter destination URL (e.g. https://roblox.com)">
     <button onclick="saveShortLink()">Create Short Link</button>
     <input type="text" id="shortLinkOutput" readonly placeholder="Your short link will appear here...">
+  </main>
+
+  <!-- New More Tools section -->
+  <main id="moreToolsSection" class="hidden">
+    <button class="back-btn" onclick="goBack()">← Back</button>
+    <label>More Tools</label>
+    <ul>
+      <!-- Add your controlled links here -->
+      <li><a href="https://scriptsrblx.netlify.app/#html_jyvzuveg" target="_blank" rel="noopener noreferrer">Scripture Webhook Tools - Discord</a></li>
+      <!-- You can add/remove links here as you want -->
+    </ul>
   </main>
 
   <script>
@@ -132,8 +201,19 @@
       document.getElementById('siteHeader').textContent =
         section === 'html' ? 'HTML Site Generator' :
         section === 'lua' ? 'Lua Script Uploader' :
-        'Link Shortener';
+        section === 'shortener' ? 'Link Shortener' :
+        section === 'moreTools' ? 'More Tools' :
+        'Scripture Developer Portal';
       document.getElementById(section + 'Section').classList.remove('hidden');
+    }
+
+    function goBack() {
+      // Hide all sections except portal
+      ['htmlSection', 'luaSection', 'shortenerSection', 'moreToolsSection'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+      });
+      document.getElementById('portalScreen').classList.remove('hidden');
+      document.getElementById('siteHeader').textContent = "Scripture Developer Portal";
     }
 
     function sanitizeName(name) {
@@ -184,7 +264,6 @@
       if (!name || !url) return alert("Both fields are required.");
       name = sanitizeName(name);
       localStorage.setItem("short_" + name, url);
-      // Note the '#' before short_
       document.getElementById('shortLinkOutput').value = location.origin + "/#short_" + name;
     }
 
@@ -221,7 +300,6 @@
           document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>404 - Lua Script Not Found</h2>";
         }
       } else if (hash.startsWith("short_")) {
-        // Redirect immediately to the saved URL
         const url = localStorage.getItem(hash);
         if (url) {
           window.location.replace(url);
