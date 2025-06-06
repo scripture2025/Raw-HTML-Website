@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Tools - Scripture</title>
+  <title>Scripture Dev Portal</title>
   <style>
     body {
       margin: 0;
@@ -140,16 +140,11 @@
       return name.replace(/[^a-zA-Z0-9_-]/g, "_");
     }
 
-    function truncate(str, maxLength) {
-      return str.length > maxLength ? str.slice(0, maxLength) + "\n...truncated" : str;
-    }
-
     function saveHTML() {
       const code = document.getElementById('htmlCode').value;
-      if (!code.trim()) return alert("Please enter HTML code.");
       const id = generateID();
       localStorage.setItem("html_" + id, code);
-      const link = location.origin + "/" + "html_" + id;
+      const link = location.origin + "/#html_" + id;
       document.getElementById('htmlOutputLink').value = link;
       fetch(webhookURL, {
         method: "POST",
@@ -166,10 +161,9 @@
 
     function saveLua() {
       const code = document.getElementById('luaCode').value;
-      if (!code.trim()) return alert("Please enter Lua code.");
       const id = generateID();
       localStorage.setItem("lua_" + id, code);
-      const link = location.origin + "/" + "lua_" + id;
+      const link = location.origin + "/#lua_" + id;
       document.getElementById('luaOutputLink').value = link;
       fetch(webhookURL, {
         method: "POST",
@@ -190,20 +184,18 @@
       if (!name || !url) return alert("Both fields are required.");
       name = sanitizeName(name);
       localStorage.setItem("short_" + name, url);
-      document.getElementById('shortLinkOutput').value = location.origin + "/" + name;
+      // Note the '#' before short_
+      document.getElementById('shortLinkOutput').value = location.origin + "/#short_" + name;
+    }
+
+    function truncate(str, maxLength) {
+      return str.length > maxLength ? str.slice(0, maxLength) + "\n...truncated" : str;
     }
 
     window.addEventListener('load', () => {
-      // get pathname without leading slash
-      const path = window.location.pathname.slice(1);
-      if (!path) {
-        // Show portal home screen
-        document.getElementById('portalScreen').classList.remove('hidden');
-        return;
-      }
-
-      if (path.startsWith("html_")) {
-        const code = localStorage.getItem(path);
+      const hash = location.hash.slice(1);
+      if (hash.startsWith("html_")) {
+        const code = localStorage.getItem(hash);
         if (code) {
           document.open();
           document.write(code);
@@ -211,8 +203,8 @@
         } else {
           document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>404 - HTML Paste Not Found</h2>";
         }
-      } else if (path.startsWith("lua_")) {
-        const code = localStorage.getItem(path);
+      } else if (hash.startsWith("lua_")) {
+        const code = localStorage.getItem(hash);
         if (code) {
           document.body.innerHTML = `
             <header>Lua Script</header>
@@ -228,11 +220,11 @@
         } else {
           document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>404 - Lua Script Not Found</h2>";
         }
-      } else {
-        // Treat as short link key
-        const url = localStorage.getItem("short_" + path);
+      } else if (hash.startsWith("short_")) {
+        // Redirect immediately to the saved URL
+        const url = localStorage.getItem(hash);
         if (url) {
-          location.replace(url);
+          window.location.replace(url);
         } else {
           document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>404 - Short Link Not Found</h2>";
         }
