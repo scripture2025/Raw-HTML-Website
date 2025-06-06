@@ -3,6 +3,7 @@
 <head>
   <title>SPortal</title>
   <style>
+    /* Same styles as before */
     body {
       margin: 0;
       padding: 0;
@@ -90,7 +91,6 @@
     .hidden {
       display: none;
     }
-    /* New styles for More Tools tab */
     #moreToolsSection ul {
       list-style: none;
       padding-left: 0;
@@ -128,7 +128,6 @@
       text-align: center;
       letter-spacing: 1.5px;
     }
-    /* Back button styling */
     .back-btn {
       background-color: #008855;
       color: #000;
@@ -178,19 +177,19 @@
     <input type="text" id="shortLinkOutput" readonly placeholder="Your short link will appear here...">
   </main>
 
-  <!-- New More Tools section -->
   <main id="moreToolsSection" class="hidden">
     <button class="back-btn" onclick="goBack()">← Back</button>
     <label>More Tools</label>
     <ul>
-      <!-- Add your controlled links here -->
       <li><a href="https://scriptsrblx.netlify.app/#html_jyvzuveg" target="_blank" rel="noopener noreferrer">Webhook Tools - Discord</a></li>
       <li><a href="https://scriptsrblx.netlify.app/#html_pkinznl2" target="_blank" rel="noopener noreferrer">IP Lookup - Universal</a></li>
     </ul>
   </main>
 
   <script>
-    // Lua and shortener code stay the same
+    // Global in-memory storage for Lua scripts and short links (shared by all users on the same page instance)
+    const sharedLuaScripts = {};
+    const sharedShortLinks = {};
 
     function generateID(length = 8) {
       return [...Array(length)].map(() => Math.random().toString(36)[2]).join('');
@@ -219,39 +218,42 @@
       return name.replace(/[^a-zA-Z0-9_-]/g, "_");
     }
 
-    // Save HTML by encoding entire code into URL hash as base64
+    // Save HTML by encoding entire code into URL hash as base64 - visible to everyone who opens link
     function saveHTML() {
       const code = document.getElementById('htmlCode').value;
       if (!code) return alert("Please enter some HTML code.");
 
-      // Encode UTF-8 safely in base64
       const encoded = btoa(unescape(encodeURIComponent(code)));
-
-      // Create a link with #code=BASE64
       const link = location.origin + location.pathname + "#code=" + encoded;
       document.getElementById('htmlOutputLink').value = link;
-
-      // Optional: You can add webhook notification here if you want
-      // But it's omitted because code is inside URL
     }
 
-    // Your Lua and shortener functions stay unchanged for now:
+    // Save Lua script in global shared object and create a URL with ID
     function saveLua() {
       const code = document.getElementById('luaCode').value;
+      if (!code) return alert("Please enter Lua code.");
+
       const id = generateID();
-      localStorage.setItem("lua_" + id, code);
-      const link = location.origin + "/#lua_" + id;
+      sharedLuaScripts[id] = code;
+
+      const link = location.origin + location.pathname + "#lua_" + id;
       document.getElementById('luaOutputLink').value = link;
-      // webhook code omitted here for brevity
     }
 
+    // Save short link in global shared object and create a URL with ID
     function saveShortLink() {
       let name = document.getElementById('shortName').value.trim();
       const url = document.getElementById('redirectURL').value.trim();
-      if (!name || !url) return alert("Both fields are required.");
+
+      if (!name) name = generateID();
       name = sanitizeName(name);
-      localStorage.setItem("short_" + name, url);
-      document.getElementById('shortLinkOutput').value = location.origin + "/#short_" + name;
+
+      if (!url) return alert("Please enter a destination URL.");
+
+      sharedShortLinks[name] = url;
+
+      const shortLink = location.origin + location.pathname + "#short_" + name;
+      document.getElementById('shortLinkOutput').value = shortLink;
     }
 
     window.addEventListener('load', () => {
@@ -260,7 +262,6 @@
       if (hash.startsWith("#code=")) {
         const encoded = hash.slice(6);
         try {
-          // Decode base64 to UTF-8 string
           const decoded = decodeURIComponent(escape(atob(encoded)));
           document.open();
           document.write(decoded);
@@ -269,32 +270,35 @@
           document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>Invalid or corrupted code.</h2>";
         }
       } else if (hash.startsWith("#lua_")) {
-        const code = localStorage.getItem(hash.slice(1));
+        const id = hash.slice(5);
+        const code = sharedLuaScripts[id];
         if (code) {
           document.body.innerHTML = `
-            <header>Lua Script</header>
+            <header style="background:#111;padding:15px;color:#0f0;">Lua Script</header>
             <div class="notes">Notes: Copy the Script and Execute it on your Executor!</div>
             <main>
               <div class="top-buttons">
                 <button onclick="copyLua()">Copy Script</button>
                 <button onclick="downloadLua()">Download Script</button>
               </div>
-              <pre id="luaDisplay">${code.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>
+              <pre id="luaDisplay" style="white-space:pre-wrap;word-break:break-word;">${code.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>
             </main>
           `;
         } else {
-          document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>404 - Lua Script Not Found</h2>";
+          document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>404 - Lua Script Not Found (maybe expired on page reload)</h2>";
         }
       } else if (hash.startsWith("#short_")) {
-        const url = localStorage.getItem(hash.slice(1));
+        const name = hash.slice(7);
+        const url = sharedShortLinks[name];
         if (url) {
           window.location.replace(url);
         } else {
-          document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>404 - Short Link Not Found</h2>";
+          document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>404 - Short Link Not Found (maybe expired on page reload)</h2>";
         }
       }
     });
 
+    // Copy & Download functions for Lua viewer page
     function copyLua() {
       const code = document.getElementById("luaDisplay").textContent;
       navigator.clipboard.writeText(code).then(() => {
