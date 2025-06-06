@@ -63,16 +63,13 @@
   </style>
 </head>
 <body>
-  <h1>⚡ Site Creator</h1>
+  <h1>⚡ HTML Site Creator</h1>
   <textarea id="htmlInput" placeholder="Paste your full HTML code here..."></textarea>
   <button onclick="createPage()">✨ Create Page</button>
 
   <div id="output"></div>
 
   <script>
-    // Simulated global database (in same file)
-    const pages = {};
-
     function generateID(length = 6) {
       const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
       let id = '';
@@ -87,9 +84,9 @@
       if (!html) return alert("Please paste HTML code!");
 
       const id = "page_" + generateID();
-      pages[id] = html;
-
-      const fullLink = location.origin + location.pathname + "#" + id;
+      const encoded = btoa(unescape(encodeURIComponent(html))); // Base64 encode safely
+      const hash = `${id}_${encoded}`;
+      const fullLink = location.origin + location.pathname + "#" + hash;
 
       document.getElementById("output").innerHTML = `
         <p>✅ Page created! Share this link:</p>
@@ -98,15 +95,18 @@
       `;
     }
 
-    // Display page if link has #page_abc123
+    // Display page if link has #page_abc123_base64code
     window.onload = () => {
       const hash = location.hash.replace("#", "");
-      if (hash.startsWith("page_")) {
-        const content = pages[hash];
-        if (content) {
+      if (hash.startsWith("page_") && hash.includes("_")) {
+        const [id, encoded] = hash.split("_", 2);
+        try {
+          const decoded = decodeURIComponent(escape(atob(encoded)));
           document.open();
-          document.write(content);
+          document.write(decoded);
           document.close();
+        } catch (e) {
+          document.body.innerHTML = "<h2 style='color:red;'>⚠️ Invalid page content</h2>";
         }
       }
     };
