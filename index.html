@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Scripture Developer</title>
+  <title>Scripture Dev Portal</title>
   <style>
     body {
       margin: 0;
@@ -219,7 +219,7 @@
         } else {
           document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>404 - Lua Script Not Found</h2>";
         }
-      } else if (hash.startsWith("short_")) {
+      } else if (hash.startsWith("#short_")) {
         const key = hash.replace(/[^a-zA-Z0-9_-]/g, "_"); // safely format it
         const url = localStorage.getItem(key);
         if (url) {
