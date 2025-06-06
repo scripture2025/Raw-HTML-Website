@@ -1,782 +1,115 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>SPortal</title>
-<style>
-  /* Reset & base */
-  * {
-    box-sizing: border-box;
-  }
-  body {
-    margin: 0;
-    background: #0f0f0f;
-    color: #00ffcc;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-  }
-  header {
-    padding: 20px 15px;
-    background: #111;
-    color: #00ff99;
-    font-weight: 700;
-    font-size: 28px;
-    text-align: center;
-    box-shadow: 0 2px 10px rgba(0, 255, 153, 0.3);
-    user-select: none;
-  }
-  main {
-    flex: 1;
-    max-width: 900px;
-    margin: 20px auto;
-    width: 90%;
-  }
-  button {
-    background-color: #00ff99;
-    border: none;
-    color: #000;
-    font-weight: 700;
-    font-size: 18px;
-    padding: 14px 28px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.25s ease;
-    margin: 8px;
-    user-select: none;
-  }
-  button:hover, button:focus {
-    background-color: #00cc7a;
-    outline: none;
-  }
-  button:disabled {
-    background-color: #555;
-    cursor: not-allowed;
-  }
-  .portal {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 20px;
-  }
-  textarea, input[type=text] {
-    width: 100%;
-    padding: 14px 18px;
-    border-radius: 8px;
-    border: none;
-    background-color: #1a1a1a;
-    color: #00ffcc;
-    font-family: monospace;
-    font-size: 15px;
-    box-shadow: 0 0 8px #00ffcc44 inset;
-    resize: vertical;
-    min-height: 160px;
-  }
-  input[readonly] {
-    background-color: #121212;
-    cursor: text;
-    user-select: all;
-  }
-  label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 700;
-    font-size: 16px;
-    color: #00ff99;
-  }
-  .hidden {
-    display: none;
-  }
-  .back-btn {
-    background-color: #008855;
-    color: #000;
-    padding: 12px 24px;
-    font-size: 16px;
-    border-radius: 8px;
-    cursor: pointer;
-    margin-bottom: 25px;
-    transition: background-color 0.25s ease;
-    user-select: none;
-  }
-  .back-btn:hover, .back-btn:focus {
-    background-color: #006644;
-    outline: none;
-  }
-  .top-buttons {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  .top-buttons button {
-    margin: 0 12px;
-  }
-  pre {
-    background-color: #111;
-    padding: 20px;
-    border-radius: 8px;
-    color: #00ffcc;
-    font-family: monospace;
-    font-size: 14px;
-    white-space: pre-wrap;
-    word-break: break-word;
-    box-shadow: 0 0 8px #00ffcc44 inset;
-    max-height: 400px;
-    overflow-y: auto;
-  }
-  #moreToolsSection ul {
-    list-style: none;
-    padding-left: 0;
-    max-width: 600px;
-    margin: auto;
-  }
-  #moreToolsSection li {
-    background: #141414;
-    margin: 8px 0;
-    padding: 14px 20px;
-    border-radius: 8px;
-    border-left: 5px solid #00ff99;
-    box-shadow: 0 0 10px #00ffcc55;
-    transition: background 0.3s;
-  }
-  #moreToolsSection li:hover {
-    background: #1a1a1a;
-  }
-  #moreToolsSection a {
-    color: #00ff99;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 18px;
-    display: block;
-  }
-  #moreToolsSection label {
-    font-size: 26px;
-    font-weight: 700;
-    color: #00ff99;
-    margin-bottom: 30px;
-    text-align: center;
-    letter-spacing: 2px;
-  }
-  .notes {
-    margin: 15px auto 30px auto;
-    max-width: 700px;
-    font-style: italic;
-    color: #80ffd3;
-    background: #141414;
-    padding: 12px 18px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px #00ffcc44;
-    text-align: center;
-  }
-  @media (max-width: 600px) {
-    button {
-      width: 100%;
-      margin: 8px 0;
+  <meta charset="UTF-8">
+  <title>Scripture - HTML Site Creator</title>
+  <style>
+    body {
+      background-color: #0d0d0d;
+      color: #00ff99;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 20px;
     }
-  }
-</style>
+    h1 {
+      text-align: center;
+      font-size: 32px;
+      color: #00ff99;
+      text-shadow: 0 0 5px #00ff99;
+    }
+    textarea {
+      width: 100%;
+      height: 300px;
+      background-color: #141414;
+      color: #8affb5;
+      border: 1px solid #00ff88;
+      padding: 15px;
+      font-family: monospace;
+      border-radius: 10px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 20px;
+      background-color: #00ff88;
+      color: #000;
+      border: none;
+      font-weight: bold;
+      font-size: 16px;
+      padding: 12px 30px;
+      cursor: pointer;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #00ff88;
+    }
+    button:hover {
+      background-color: #00e67a;
+    }
+    code {
+      display: block;
+      background: #151c1f;
+      border-left: 5px solid #00ff88;
+      padding: 15px;
+      margin-top: 20px;
+      color: #8affb5;
+      word-break: break-all;
+    }
+    iframe {
+      width: 100%;
+      height: 400px;
+      border: 1px solid #00ff88;
+      border-radius: 10px;
+      box-shadow: 0 0 15px #00ff88;
+      background: white;
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
-<header id="siteHeader">Scripture Developer Portal</header>
+  <h1>⚡ Site Creator</h1>
+  <textarea id="htmlInput" placeholder="Paste your full HTML code here..."></textarea>
+  <button onclick="createPage()">✨ Create Page</button>
 
-<main id="portalScreen" class="portal" aria-label="Main portal navigation">
-  <button type="button" onclick="openSection('html')">HTML Site Creator</button>
-  <button type="button" onclick="openSection('lua')">Lua Script Uploader</button>
-  <button type="button" onclick="openSection('shortener')">Link Shortener</button>
-  <button type="button" onclick="openSection('moreTools')">More Tools</button>
-</main>
+  <div id="output"></div>
 
-<main id="htmlSection" class="hidden" aria-label="HTML Site Creator Section">
-  <button class="back-btn" type="button" onclick="goBack()">← Back</button>
-  <label for="htmlCode">Paste your HTML code here:</label>
-  <textarea id="htmlCode" placeholder="Paste your HTML code here..." spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
-  <button type="button" onclick="saveHTML()">Generate Site Link</button>
-  <input type="text" id="htmlOutputLink" readonly placeholder="Your generated site link will appear here..." aria-readonly="true" />
-</main>
+  <script>
+    // Simulated global database (in same file)
+    const pages = {};
 
-<main id="luaSection" class="hidden" aria-label="Lua Script Uploader Section">
-  <button class="back-btn" type="button" onclick="goBack()">← Back</button>
-  <label for="luaCode">Input your Lua code here:</label>
-  <textarea id="luaCode" placeholder="Input your Lua code here..." spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
-  <button type="button" onclick="saveLua()">Create Lua Script Link</button>
-  <input type="text" id="luaOutputLink" readonly placeholder="Your Lua script link will appear here..." aria-readonly="true" />
-</main>
-
-<main id="shortenerSection" class="hidden" aria-label="Link Shortener Section">
-  <button class="back-btn" type="button" onclick="goBack()">← Back</button>
-  <label for="shortName">Custom short link name (optional):</label>
-  <input type="text" id="shortName" placeholder="Enter custom link name (e.g. roblox_com)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
-  <label for="redirectURL">Destination URL:</label>
-  <input type="text" id="redirectURL" placeholder="Enter destination URL (e.g. https://roblox.com)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
-  <button type="button" onclick="saveShortLink()">Create Short Link</button>
-  <input type="text" id="shortLinkOutput" readonly placeholder="Your short link will appear here..." aria-readonly="true" />
-</main>
-
-<main id="moreToolsSection" class="hidden" aria-label="More Tools Section">
-  <button class="back-btn" type="button" onclick="goBack()">← Back</button>
-  <label>More Tools</label>
-  <ul>
-    <li><a href="https://scriptsrblx.netlify.app/#html_jyvzuveg" target="_blank" rel="noopener noreferrer">Webhook Tools - Discord</a></li>
-    <li><a href="https://scriptsrblx.netlify.app/#html_pkinznl2" target="_blank" rel="noopener noreferrer">IP Lookup - Universal</a></li>
-  </ul>
-</main>
-
-<script>
-  // Generate random ID (alphanumeric)
-  function generateID(length = 8) {
-    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let id = '';
-    for (let i = 0; i < length; i++) {
-      id += chars.charAt(Math.floor(Math.random() * chars.length));
+    function generateID(length = 6) {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      let id = '';
+      for (let i = 0; i < length; i++) {
+        id += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return id;
     }
-    return id;
-  }
 
-  function openSection(section) {
-    // Hide all sections first
-    ['portalScreen', 'htmlSection', 'luaSection', 'shortenerSection', 'moreToolsSection'].forEach(id => {
-      document.getElementById(id).classList.add('hidden');
-    });
-    // Show selected
-    document.getElementById(section + 'Section').classList.remove('hidden');
+    function createPage() {
+      const html = document.getElementById('htmlInput').value.trim();
+      if (!html) return alert("Please paste HTML code!");
 
-    // Change header text accordingly
-    const headerTexts = {
-      html: 'HTML Site Creator',
-      lua: 'Lua Script Uploader',
-      shortener: 'Link Shortener',
-      moreTools: 'More Tools',
+      const id = "page_" + generateID();
+      pages[id] = html;
+
+      const fullLink = location.origin + location.pathname + "#" + id;
+
+      document.getElementById("output").innerHTML = `
+        <p>✅ Page created! Share this link:</p>
+        <code>${fullLink}</code>
+        <iframe src="${fullLink}"></iframe>
+      `;
+    }
+
+    // Display page if link has #page_abc123
+    window.onload = () => {
+      const hash = location.hash.replace("#", "");
+      if (hash.startsWith("page_")) {
+        const content = pages[hash];
+        if (content) {
+          document.open();
+          document.write(content);
+          document.close();
+        }
+      }
     };
-    document.getElementById('siteHeader').textContent = headerTexts[section] || 'Scripture Developer Portal';
-
-    // Clear outputs on open
-    if(section === 'html') document.getElementById('htmlOutputLink').value = '';
-    if(section === 'lua') document.getElementById('luaOutputLink').value = '';
-    if(section === 'shortener') {
-      document.getElementById('shortLinkOutput').value = '';
-      document.getElementById('shortName').value = '';
-      document.getElementById('redirectURL').value = '';
-    }
-  }
-
-  function goBack() {
-    // Hide all sections except portalScreen
-    ['htmlSection', 'luaSection', 'shortenerSection', 'moreToolsSection'].forEach(id => {
-      document.getElementById(id).classList.add('hidden');
-    });
-    document.getElementById('portalScreen').classList.remove('hidden');
-    document.getElementById('siteHeader').textContent = "Scripture Developer Portal";
-  }
-
-  function sanitizeName(name) {
-    return name.replace(/[^a-zA-Z0-9_-]/g, "_");
-  }
-
-  // Save HTML: encode entire code in URL hash with random ID: #html_{id}
-  // Store the code in a temporary in-memory map (only available on current page session)
-  const htmlCodeMap = new Map();
-
-  function saveHTML() {
-    const code = document.getElementById('htmlCode').value.trim();
-    if (!code) return alert("Please enter some HTML code.");
-
-    const id = generateID();
-    htmlCodeMap.set(id, code);
-
-    // Encode code base64 for URL hash usage
-    // We'll just put the id in the hash, code is stored in-memory (lost on reload)
-    const link = location.origin + location.pathname + "#html_" + id;
-    document.getElementById('htmlOutputLink').value = link;
-  }
-
-  // Save Lua script: same as above, keep in-memory map and generate #lua_{id}
-  const luaCodeMap = new Map();
-
-  function saveLua() {
-    const code = document.getElementById('luaCode').value.trim();
-    if (!code) return alert("Please enter Lua code.");
-
-    const id = generateID();
-    luaCodeMap.set(id, code);
-
-    const link = location.origin + location.pathname + "#lua_" + id;
-    document.getElementById('luaOutputLink').value = link;
-  }
-
-  // Save short link: no localStorage, just generate #short_{name} but no backend so no redirect
-  function saveShortLink() {
-    let name = document.getElementById('shortName').value.trim();
-    const url = document.getElementById('redirectURL').value.trim();
-
-    if (!url) return alert("Please enter a destination URL.");
-
-    if (!name) name = generateID();
-    name = sanitizeName(name);
-
-    // Since no storage, just output link with #short_{name}
-    // The redirect won't work because no stored map, so inform user.
-    const shortLink = location.origin + location.pathname + "#short_" + name;
-    document.getElementById('shortLinkOutput').value = shortLink;
-
-    alert("Note: Without backend storage, short link redirects won't work on reload.");
-  }
-
-  // On page load: parse URL hash and show correct content
-  window.addEventListener('load', () => {
-    const hash = location.hash;
-
-    if (hash.startsWith("#html_")) {
-      // Show stored HTML code if available in map, else show error
-      const id = hash.slice(6);
-      const code = htmlCodeMap.get(id);
-      if (code) {
-        document.open();
-        document.write(code);
-        document.close();
-      } else {
-        document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>HTML site not found or page reloaded (no persistence).</h2>";
-      }
-    } else if (hash.startsWith("#lua_")) {
-      const id = hash.slice(5);
-      const code = luaCodeMap.get(id);
-      if (code) {
-        document.body.innerHTML = `
-          <header style="background:#111;padding:15px;color:#0f0;font-weight:bold;text-align:center;">Lua Script Viewer</header>
-          <div style="max-width:900px;margin:30px auto; padding:20px; background:#141414; border-radius:10px; box-shadow: 0 0 10px #00ffcc55; color:#00ffcc; font-family: monospace; font-size: 14px; white-space: pre-wrap; word-break: break-word;">
-            <div style="text-align:center; margin-bottom: 20px;">
-              <button onclick="copyLua()" style="margin-right: 12px; padding: 10px 20px; font-size:16px; font-weight:bold; cursor:pointer; border:none; border-radius:8px; background:#00ff99; color:#000;">Copy Script</button>
-              <button onclick="downloadLua()" style="padding: 10px 20px; font-size:16px; font-weight:bold; cursor:pointer; border:none; border-radius:8px; background:#00ff99; color:#000;">Download Script</button>
-            </div>
-            <pre id="luaDisplay">${escapeHtml(code)}</pre>
-          </div>
-          <script>
-            function copyLua() {
-              const code = document.getElementById("luaDisplay").textContent;
-              navigator.clipboard.writeText(code).then(() => alert("Script copied to clipboard!"));
-            }
-            function downloadLua() {
-              const code = document.getElementById("luaDisplay").textContent;
-              const blob = new Blob([code], {type: "text/plain"});
-              const a = document.createElement("a");
-              a.href = URL.createObjectURL(blob);
-              a.download = "script.lua";
-              a.click();
-              URL.revokeObjectURL(a.href);
-            }
-          <\/script>
-        `;
-      } else {
-        document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>Lua script not found or page reloaded (no persistence).</h2>";
-      }
-    } else if (hash.startsWith("#short_")) {
-      document.body.innerHTML = "<h2 style='color:#00ff99;text-align:center;margin-top:50px;'>Short links require backend storage and do not work on this demo.</h2>";
-    }
-  });
-
-  // Utility: escape HTML entities for display
-  function escapeHtml(text) {
-    return text.replace(/[&<>"']/g, function (m) {
-      switch (m) {
-        case '&': return '&amp;';
-        case '<': return '&lt;';
-        case '>': return '&gt;';
-        case '"': return '&quot;';
-        case "'": return '&#39;';
-        default: return m;
-      }
-    });
-  }
-</script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>SPortal FREE - Scripture Developer Portal</title>
-<style>
-  /* Reset & base */
-  * {
-    box-sizing: border-box;
-  }
-  body {
-    margin: 0;
-    background: #0f0f0f;
-    color: #00ffcc;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-  }
-  header {
-    padding: 20px 15px;
-    background: #111;
-    color: #00ff99;
-    font-weight: 700;
-    font-size: 28px;
-    text-align: center;
-    box-shadow: 0 2px 10px rgba(0, 255, 153, 0.3);
-    user-select: none;
-  }
-  main {
-    flex: 1;
-    max-width: 900px;
-    margin: 20px auto;
-    width: 90%;
-  }
-  button {
-    background-color: #00ff99;
-    border: none;
-    color: #000;
-    font-weight: 700;
-    font-size: 18px;
-    padding: 14px 28px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.25s ease;
-    margin: 8px;
-    user-select: none;
-  }
-  button:hover, button:focus {
-    background-color: #00cc7a;
-    outline: none;
-  }
-  button:disabled {
-    background-color: #555;
-    cursor: not-allowed;
-  }
-  .portal {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 20px;
-  }
-  textarea, input[type=text] {
-    width: 100%;
-    padding: 14px 18px;
-    border-radius: 8px;
-    border: none;
-    background-color: #1a1a1a;
-    color: #00ffcc;
-    font-family: monospace;
-    font-size: 15px;
-    box-shadow: 0 0 8px #00ffcc44 inset;
-    resize: vertical;
-    min-height: 160px;
-  }
-  input[readonly] {
-    background-color: #121212;
-    cursor: text;
-    user-select: all;
-  }
-  label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 700;
-    font-size: 16px;
-    color: #00ff99;
-  }
-  .hidden {
-    display: none;
-  }
-  .back-btn {
-    background-color: #008855;
-    color: #000;
-    padding: 12px 24px;
-    font-size: 16px;
-    border-radius: 8px;
-    cursor: pointer;
-    margin-bottom: 25px;
-    transition: background-color 0.25s ease;
-    user-select: none;
-  }
-  .back-btn:hover, .back-btn:focus {
-    background-color: #006644;
-    outline: none;
-  }
-  .top-buttons {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  .top-buttons button {
-    margin: 0 12px;
-  }
-  pre {
-    background-color: #111;
-    padding: 20px;
-    border-radius: 8px;
-    color: #00ffcc;
-    font-family: monospace;
-    font-size: 14px;
-    white-space: pre-wrap;
-    word-break: break-word;
-    box-shadow: 0 0 8px #00ffcc44 inset;
-    max-height: 400px;
-    overflow-y: auto;
-  }
-  #moreToolsSection ul {
-    list-style: none;
-    padding-left: 0;
-    max-width: 600px;
-    margin: auto;
-  }
-  #moreToolsSection li {
-    background: #141414;
-    margin: 8px 0;
-    padding: 14px 20px;
-    border-radius: 8px;
-    border-left: 5px solid #00ff99;
-    box-shadow: 0 0 10px #00ffcc55;
-    transition: background 0.3s;
-  }
-  #moreToolsSection li:hover {
-    background: #1a1a1a;
-  }
-  #moreToolsSection a {
-    color: #00ff99;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 18px;
-    display: block;
-  }
-  #moreToolsSection label {
-    font-size: 26px;
-    font-weight: 700;
-    color: #00ff99;
-    margin-bottom: 30px;
-    text-align: center;
-    letter-spacing: 2px;
-  }
-  .notes {
-    margin: 15px auto 30px auto;
-    max-width: 700px;
-    font-style: italic;
-    color: #80ffd3;
-    background: #141414;
-    padding: 12px 18px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px #00ffcc44;
-    text-align: center;
-  }
-  @media (max-width: 600px) {
-    button {
-      width: 100%;
-      margin: 8px 0;
-    }
-  }
-</style>
-</head>
-<body>
-<header id="siteHeader">Scripture Developer Portal</header>
-
-<main id="portalScreen" class="portal" aria-label="Main portal navigation">
-  <button type="button" onclick="openSection('html')">HTML Site Creator</button>
-  <button type="button" onclick="openSection('lua')">Lua Script Uploader</button>
-  <button type="button" onclick="openSection('shortener')">Link Shortener</button>
-  <button type="button" onclick="openSection('moreTools')">More Tools</button>
-</main>
-
-<main id="htmlSection" class="hidden" aria-label="HTML Site Creator Section">
-  <button class="back-btn" type="button" onclick="goBack()">← Back</button>
-  <label for="htmlCode">Paste your HTML code here:</label>
-  <textarea id="htmlCode" placeholder="Paste your HTML code here..." spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
-  <button type="button" onclick="saveHTML()">Generate Site Link</button>
-  <input type="text" id="htmlOutputLink" readonly placeholder="Your generated site link will appear here..." aria-readonly="true" />
-</main>
-
-<main id="luaSection" class="hidden" aria-label="Lua Script Uploader Section">
-  <button class="back-btn" type="button" onclick="goBack()">← Back</button>
-  <label for="luaCode">Input your Lua code here:</label>
-  <textarea id="luaCode" placeholder="Input your Lua code here..." spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
-  <button type="button" onclick="saveLua()">Create Lua Script Link</button>
-  <input type="text" id="luaOutputLink" readonly placeholder="Your Lua script link will appear here..." aria-readonly="true" />
-</main>
-
-<main id="shortenerSection" class="hidden" aria-label="Link Shortener Section">
-  <button class="back-btn" type="button" onclick="goBack()">← Back</button>
-  <label for="shortName">Custom short link name (optional):</label>
-  <input type="text" id="shortName" placeholder="Enter custom link name (e.g. roblox_com)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
-  <label for="redirectURL">Destination URL:</label>
-  <input type="text" id="redirectURL" placeholder="Enter destination URL (e.g. https://roblox.com)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
-  <button type="button" onclick="saveShortLink()">Create Short Link</button>
-  <input type="text" id="shortLinkOutput" readonly placeholder="Your short link will appear here..." aria-readonly="true" />
-</main>
-
-<main id="moreToolsSection" class="hidden" aria-label="More Tools Section">
-  <button class="back-btn" type="button" onclick="goBack()">← Back</button>
-  <label>More Tools</label>
-  <ul>
-    <li><a href="https://scriptsrblx.netlify.app/#html_jyvzuveg" target="_blank" rel="noopener noreferrer">Webhook Tools - Discord</a></li>
-    <li><a href="https://scriptsrblx.netlify.app/#html_pkinznl2" target="_blank" rel="noopener noreferrer">IP Lookup - Universal</a></li>
-  </ul>
-</main>
-
-<script>
-  // Generate random ID (alphanumeric)
-  function generateID(length = 8) {
-    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let id = '';
-    for (let i = 0; i < length; i++) {
-      id += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return id;
-  }
-
-  function openSection(section) {
-    // Hide all sections first
-    ['portalScreen', 'htmlSection', 'luaSection', 'shortenerSection', 'moreToolsSection'].forEach(id => {
-      document.getElementById(id).classList.add('hidden');
-    });
-    // Show selected
-    document.getElementById(section + 'Section').classList.remove('hidden');
-
-    // Change header text accordingly
-    const headerTexts = {
-      html: 'HTML Site Creator',
-      lua: 'Lua Script Uploader',
-      shortener: 'Link Shortener',
-      moreTools: 'More Tools',
-    };
-    document.getElementById('siteHeader').textContent = headerTexts[section] || 'Scripture Developer Portal';
-
-    // Clear outputs on open
-    if(section === 'html') document.getElementById('htmlOutputLink').value = '';
-    if(section === 'lua') document.getElementById('luaOutputLink').value = '';
-    if(section === 'shortener') {
-      document.getElementById('shortLinkOutput').value = '';
-      document.getElementById('shortName').value = '';
-      document.getElementById('redirectURL').value = '';
-    }
-  }
-
-  function goBack() {
-    // Hide all sections except portalScreen
-    ['htmlSection', 'luaSection', 'shortenerSection', 'moreToolsSection'].forEach(id => {
-      document.getElementById(id).classList.add('hidden');
-    });
-    document.getElementById('portalScreen').classList.remove('hidden');
-    document.getElementById('siteHeader').textContent = "Scripture Developer Portal";
-  }
-
-  function sanitizeName(name) {
-    return name.replace(/[^a-zA-Z0-9_-]/g, "_");
-  }
-
-  // Save HTML: encode entire code in URL hash with random ID: #html_{id}
-  // Store the code in a temporary in-memory map (only available on current page session)
-  const htmlCodeMap = new Map();
-
-  function saveHTML() {
-    const code = document.getElementById('htmlCode').value.trim();
-    if (!code) return alert("Please enter some HTML code.");
-
-    const id = generateID();
-    htmlCodeMap.set(id, code);
-
-    // Encode code base64 for URL hash usage
-    // We'll just put the id in the hash, code is stored in-memory (lost on reload)
-    const link = location.origin + location.pathname + "#html_" + id;
-    document.getElementById('htmlOutputLink').value = link;
-  }
-
-  // Save Lua script: same as above, keep in-memory map and generate #lua_{id}
-  const luaCodeMap = new Map();
-
-  function saveLua() {
-    const code = document.getElementById('luaCode').value.trim();
-    if (!code) return alert("Please enter Lua code.");
-
-    const id = generateID();
-    luaCodeMap.set(id, code);
-
-    const link = location.origin + location.pathname + "#lua_" + id;
-    document.getElementById('luaOutputLink').value = link;
-  }
-
-  // Save short link: no localStorage, just generate #short_{name} but no backend so no redirect
-  function saveShortLink() {
-    let name = document.getElementById('shortName').value.trim();
-    const url = document.getElementById('redirectURL').value.trim();
-
-    if (!url) return alert("Please enter a destination URL.");
-
-    if (!name) name = generateID();
-    name = sanitizeName(name);
-
-    // Since no storage, just output link with #short_{name}
-    // The redirect won't work because no stored map, so inform user.
-    const shortLink = location.origin + location.pathname + "#short_" + name;
-    document.getElementById('shortLinkOutput').value = shortLink;
-
-    alert("Note: Without backend storage, short link redirects won't work on reload.");
-  }
-
-  // On page load: parse URL hash and show correct content
-  window.addEventListener('load', () => {
-    const hash = location.hash;
-
-    if (hash.startsWith("#html_")) {
-      // Show stored HTML code if available in map, else show error
-      const id = hash.slice(6);
-      const code = htmlCodeMap.get(id);
-      if (code) {
-        document.open();
-        document.write(code);
-        document.close();
-      } else {
-        document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>HTML site not found or page reloaded (no persistence).</h2>";
-      }
-    } else if (hash.startsWith("#lua_")) {
-      const id = hash.slice(5);
-      const code = luaCodeMap.get(id);
-      if (code) {
-        document.body.innerHTML = `
-          <header style="background:#111;padding:15px;color:#0f0;font-weight:bold;text-align:center;">Lua Script Viewer</header>
-          <div style="max-width:900px;margin:30px auto; padding:20px; background:#141414; border-radius:10px; box-shadow: 0 0 10px #00ffcc55; color:#00ffcc; font-family: monospace; font-size: 14px; white-space: pre-wrap; word-break: break-word;">
-            <div style="text-align:center; margin-bottom: 20px;">
-              <button onclick="copyLua()" style="margin-right: 12px; padding: 10px 20px; font-size:16px; font-weight:bold; cursor:pointer; border:none; border-radius:8px; background:#00ff99; color:#000;">Copy Script</button>
-              <button onclick="downloadLua()" style="padding: 10px 20px; font-size:16px; font-weight:bold; cursor:pointer; border:none; border-radius:8px; background:#00ff99; color:#000;">Download Script</button>
-            </div>
-            <pre id="luaDisplay">${escapeHtml(code)}</pre>
-          </div>
-          <script>
-            function copyLua() {
-              const code = document.getElementById("luaDisplay").textContent;
-              navigator.clipboard.writeText(code).then(() => alert("Script copied to clipboard!"));
-            }
-            function downloadLua() {
-              const code = document.getElementById("luaDisplay").textContent;
-              const blob = new Blob([code], {type: "text/plain"});
-              const a = document.createElement("a");
-              a.href = URL.createObjectURL(blob);
-              a.download = "script.lua";
-              a.click();
-              URL.revokeObjectURL(a.href);
-            }
-          <\/script>
-        `;
-      } else {
-        document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px;'>Lua script not found or page reloaded (no persistence).</h2>";
-      }
-    } else if (hash.startsWith("#short_")) {
-      document.body.innerHTML = "<h2 style='color:#00ff99;text-align:center;margin-top:50px;'>Short links require backend storage and do not work on this demo.</h2>";
-    }
-  });
-
-  // Utility: escape HTML entities for display
-  function escapeHtml(text) {
-    return text.replace(/[&<>"']/g, function (m) {
-      switch (m) {
-        case '&': return '&amp;';
-        case '<': return '&lt;';
-        case '>': return '&gt;';
-        case '"': return '&quot;';
-        case "'": return '&#39;';
-        default: return m;
-      }
-    });
-  }
-</script>
+  </script>
 </body>
 </html>
