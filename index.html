@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>LuaU Code Editor</title>
+  <title>Coding Language - Best Code Editors</title>
   <style>
     body {
       background-color: #0e0e0e;
@@ -20,14 +20,23 @@
 
     header {
       font-size: 2rem;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
       color: #00ffc6;
       user-select: none;
     }
 
+    select {
+      background-color: #1a1a1a;
+      color: #00ffc6;
+      padding: 5px 10px;
+      border: 1px solid #00ffc6;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+
     #editor {
       width: 90%;
-      height: 400px;
+      height: 300px;
       border: 1px solid #00ffc6;
       border-radius: 8px;
       transition: all 0.3s ease;
@@ -44,7 +53,7 @@
     }
 
     .button-group {
-      margin-top: 15px;
+      margin-top: 10px;
       user-select: none;
     }
 
@@ -64,7 +73,7 @@
       background-color: #00e6b8;
     }
 
-    #console {
+    #console, #output-box {
       width: 90%;
       background-color: #1a1a1a;
       color: #e0e0e0;
@@ -88,7 +97,14 @@
 </head>
 <body>
 
-  <header>LuaU Code Editor</header>
+  <header>Multi-Language Code Editor</header>
+  <select id="languageSelect">
+    <option value="lua">Lua</option>
+    <option value="javascript">JavaScript</option>
+    <option value="python">Python</option>
+    <option value="html">HTML</option>
+    <option value="css">CSS</option>
+  </select>
 
   <div id="editor"></div>
 
@@ -97,68 +113,75 @@
     <button id="fullscreenBtn">Fullscreen</button>
   </div>
 
-  <div id="console">Console Output...</div>
+  <div id="output-box">Console Output...</div>
 
-  <!-- Ace Editor -->
+  <!-- Ace Editor from CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-lua.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/theme-monokai.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-lua.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-javascript.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-python.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-html.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-css.js"></script>
 
   <script>
     const editor = ace.edit("editor");
     editor.setTheme("ace/theme/monokai");
     editor.session.setMode("ace/mode/lua");
-    editor.session.setUseWorker(false);
+    editor.setValue("-- Your Lua code here\n", 1);
 
-    // Set only the requested initial content:
-    editor.setValue("--> Lua Code Editor by Scripture <--", 1);
+    const langSelect = document.getElementById("languageSelect");
+    const outputBox = document.getElementById("output-box");
 
-    function checkSyntax(code) {
-      const openParens = (code.match(/\(/g) || []).length;
-      const closeParens = (code.match(/\)/g) || []).length;
-      const quotes = (code.match(/"/g) || []).length;
-
-      if (quotes % 2 !== 0) return 'Unclosed string (missing ")';
-      if (openParens !== closeParens) return 'Mismatched parentheses';
-      return null;
+    function printOutput(text, type = '') {
+      outputBox.innerHTML = `<span class="${type}">${text}</span>`;
     }
 
-    function runCode() {
+    document.getElementById("runBtn").addEventListener("click", () => {
       const code = editor.getValue();
-      const consoleOut = document.getElementById("console");
+      const lang = langSelect.value;
+      if (!code.trim()) return printOutput("No code to run.", 'error');
 
-      const error = checkSyntax(code);
-      if (error) {
-        consoleOut.innerHTML = `<span class="error">Error: ${error}</span>`;
-        return;
-      }
-
-      // Basic simulated print output for lines starting with print()
-      const lines = code.split("\n");
-      const outputLines = lines
-        .filter(line => line.trim().startsWith("print("))
-        .map(line => {
+      switch (lang) {
+        case "lua":
+          printOutput("Lua execution is not supported here.", 'error');
+          break;
+        case "javascript":
           try {
-            const inside = line.match(/print\s*\((.*)\)/)[1];
-            return eval(inside);
-          } catch {
-            return "[error parsing print()]";
+            const result = eval(code);
+            printOutput(result || 'JavaScript Ran Successfully', 'success');
+          } catch (e) {
+            printOutput(`Error: ${e.message}`, 'error');
           }
-        });
+          break;
+        case "html":
+          const win = window.open();
+          win.document.write(code);
+          win.document.close();
+          printOutput("HTML opened in new tab", 'success');
+          break;
+        case "css":
+          const styleWin = window.open();
+          styleWin.document.write(`<style>${code}</style>`);
+          styleWin.document.close();
+          printOutput("CSS applied in new tab", 'success');
+          break;
+        case "python":
+          printOutput("Python runtime not included in this version.", 'error');
+          break;
+      }
+    });
 
-      consoleOut.innerHTML = (outputLines.join("\n") || "[No output]") + "\n\n" + '<span class="success">Ran the code!</span>';
-    }
+    langSelect.addEventListener("change", () => {
+      const lang = langSelect.value;
+      editor.session.setMode("ace/mode/" + lang);
+      printOutput(`Switched to ${lang.toUpperCase()} mode.`, 'success');
+    });
 
-    document.getElementById("runBtn").addEventListener("click", runCode);
-
-    // Fullscreen toggle
-    const fullscreenBtn = document.getElementById("fullscreenBtn");
-    fullscreenBtn.addEventListener("click", () => {
+    document.getElementById("fullscreenBtn").addEventListener("click", () => {
       document.body.classList.toggle("fullscreen");
-      fullscreenBtn.textContent = document.body.classList.contains("fullscreen") ? "Exit Fullscreen" : "Fullscreen";
       editor.resize();
     });
   </script>
-
 </body>
 </html>
