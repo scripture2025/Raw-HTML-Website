@@ -2,381 +2,218 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Best Code Editor</title>
   <style>
     body {
-      background-color: #000000;
-      color: #ffffff;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 0;
+      background-color: #000;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
       margin: 0;
-      height: 100vh;
+      padding: 0;
       overflow: hidden;
-      transition: background-color 0.3s ease, color 0.3s ease;
     }
-
     header {
       font-size: 2rem;
-      margin: 20px 0 10px;
-      color: #ffffff;
-      user-select: none;
+      margin: 20px;
+      text-align: center;
     }
-
-    select {
-      background-color: #000000;
-      color: #ffffff;
-      padding: 5px 10px;
-      border: 1px solid #ffffff;
-      border-radius: 5px;
-      margin-bottom: 10px;
+    #languageSelect, #toolsSelect {
+      background: #000;
+      color: #fff;
+      padding: 6px;
+      margin: 5px;
+      border: 1px solid #fff;
+      border-radius: 4px;
     }
-
     #editor {
       width: 90%;
       height: 50vh;
-      border: 1px solid #ffffff;
-      border-radius: 8px;
-      transition: all 0.3s ease;
-      box-sizing: border-box;
-    }
-
-    .fullscreen #editor {
-      position: fixed !important;
-      top: 0;
-      left: 0;
-      width: 100vw !important;
-      height: 100vh !important;
-      border-radius: 0 !important;
-      z-index: 9999;
-    }
-
-    .button-group {
-      margin-top: 10px;
-      user-select: none;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 10px;
-    }
-
-    button {
-      background-color: #ffffff;
-      color: #000000;
-      border: none;
-      padding: 10px 18px;
+      margin: auto;
+      border: 1px solid #fff;
       border-radius: 5px;
+    }
+    .button-group {
+      margin: 10px;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    button {
+      padding: 10px 16px;
       font-size: 1rem;
+      border: none;
+      border-radius: 5px;
       cursor: pointer;
-      transition: background-color 0.3s ease;
-      white-space: nowrap;
+      background: #fff;
+      color: #000;
     }
-
-    button:hover {
-      background-color: #e0e0e0;
-    }
-
     #output-box {
       width: 90%;
-      background-color: #222222;
-      color: #ffffff;
-      padding: 15px;
-      margin-top: 20px;
-      border-radius: 8px;
-      white-space: pre-wrap;
-      font-family: 'Courier New', Courier, monospace;
+      margin: 10px auto;
+      background: #222;
+      color: #00ff99;
+      padding: 10px;
+      border-radius: 5px;
       max-height: 150px;
       overflow-y: auto;
+      font-family: monospace;
     }
-
-    .error {
-      color: #ff4c4c;
+    .fullscreen *:not(#editor) {
+      display: none !important;
     }
-
-    .success {
-      color: #00ff99;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    /* White theme */
-    body.white {
-      background-color: #ffffff;
-      color: #000000;
-    }
-
-    body.white header {
-      color: #000000;
-    }
-
-    body.white select {
-      background-color: #ffffff;
-      color: #000000;
-      border-color: #000000;
-    }
-
-    body.white #output-box {
-      background-color: #eeeeee;
-      color: #000000;
-    }
-
-    body.white button {
-      background-color: #000000;
-      color: #ffffff;
-    }
-
-    body.white button:hover {
-      background-color: #222222;
-    }
-
-    body.white #editor {
-      border-color: #000000;
+    .fullscreen #editor {
+      width: 100vw !important;
+      height: 100vh !important;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 9999;
+      border-radius: 0;
     }
   </style>
 </head>
 <body>
 
   <header>Best Scripture - Code Editor</header>
-  <select id="languageSelect" aria-label="Select Programming Language">
-    <option value="lua">Lua</option>
-    <option value="javascript">JavaScript</option>
-    <option value="python">Python</option>
-    <option value="html">HTML</option>
-    <option value="css">CSS</option>
-    <option value="typescript">TypeScript</option>
-    <option value="json">JSON</option>
-    <option value="java">Java</option>
-    <option value="c_cpp">C / C++</option>
-    <option value="ruby">Ruby</option>
-    <option value="php">PHP</option>
-    <option value="golang">Go</option>
-  </select>
 
-  <div id="editor" role="textbox" aria-multiline="true" aria-label="Code editor"></div>
+  <div style="text-align:center;">
+    <select id="languageSelect">
+      <option value="lua">Lua</option>
+      <option value="javascript">JavaScript</option>
+      <option value="python">Python</option>
+      <option value="html">HTML</option>
+      <option value="css">CSS</option>
+      <option value="typescript">TypeScript</option>
+      <option value="json">JSON</option>
+      <option value="java">Java</option>
+      <option value="c_cpp">C / C++</option>
+      <option value="ruby">Ruby</option>
+      <option value="php">PHP</option>
+      <option value="golang">Go</option>
+      <option value="batchfile">Batchfile</option>
+    </select>
+
+    <select id="toolsSelect">
+      <option selected disabled>Tools</option>
+      <option value="ip">IP Lookup</option>
+      <option value="ns">NS Lookup</option>
+    </select>
+  </div>
+
+  <div id="editor">-- Your Lua code here</div>
 
   <div class="button-group">
     <button id="runBtn">Run Code</button>
     <button id="fullscreenBtn">Fullscreen</button>
-    <button id="exitFullscreenBtn">Exit Fullscreen</button>
-    <button id="obfuscateBtn">Obfuscations</button>
+    <button id="obfuscateBtn">Obfuscator</button>
     <button id="copyBtn">Copy Code</button>
     <button id="clearBtn">Clear Editor</button>
     <button id="downloadBtn">Download Code</button>
-    <button id="themeToggleBtn">Toggle Theme</button>
   </div>
 
-  <div id="output-box" role="region" aria-live="polite" aria-label="Output console">Console Output...</div>
+  <div id="output-box">Console Output...</div>
 
-  <!-- Ace Editor from CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/theme-monokai.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/theme-chrome.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-lua.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-javascript.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-python.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-html.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-css.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-typescript.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-json.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-java.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-c_cpp.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-ruby.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-php.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-golang.js"></script>
-
   <script>
     const editor = ace.edit("editor");
     editor.setTheme("ace/theme/monokai");
     editor.session.setMode("ace/mode/lua");
-    editor.setValue("-- Your Lua code here\n", 1);
-    editor.setShowPrintMargin(false);
 
-    const langSelect = document.getElementById("languageSelect");
-    const outputBox = document.getElementById("output-box");
-    const obfuscateBtn = document.getElementById("obfuscateBtn");
-    const copyBtn = document.getElementById("copyBtn");
-    const clearBtn = document.getElementById("clearBtn");
-    const downloadBtn = document.getElementById("downloadBtn");
-    const themeToggleBtn = document.getElementById("themeToggleBtn");
-    const fullscreenBtn = document.getElementById("fullscreenBtn");
-    const exitFullscreenBtn = document.getElementById("exitFullscreenBtn");
-    const runBtn = document.getElementById("runBtn");
-
-    function printOutput(text, type = '') {
-      const escaped = text.replace(/[&<>"']/g, c => {
-        return {'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[c];
-      });
-      outputBox.innerHTML = `<span class="${type}">${escaped}</span>`;
-    }
-
-    const languagePlaceholders = {
-      lua: "-- Your Lua code here\n",
-      javascript: "// Your JavaScript code here\n",
-      python: "# Your Python code here\n",
-      html: "<!-- Your HTML code here -->\n",
-      css: "/* Your CSS code here */\n",
-      typescript: "// Your TypeScript code here\n",
-      json: "{\n  \"key\": \"value\"\n}\n",
-      java: "// Your Java code here\n",
-      c_cpp: "// Your C/C++ code here\n",
-      ruby: "# Your Ruby code here\n",
-      php: "<?php\n// Your PHP code here\n?>\n",
-      golang: "// Your Go code here\n",
+    const languageMap = {
+      lua: "lua",
+      javascript: "javascript",
+      python: "python",
+      html: "html",
+      css: "css",
+      typescript: "typescript",
+      json: "json",
+      java: "java",
+      c_cpp: "c_cpp",
+      ruby: "ruby",
+      php: "php",
+      golang: "golang",
+      batchfile: "batchfile"
     };
 
-    function saveCode() {
-      const lang = langSelect.value;
-      localStorage.setItem(`code_${lang}`, editor.getValue());
-    }
-
-    function loadCode() {
-      const lang = langSelect.value;
-      const saved = localStorage.getItem(`code_${lang}`);
-      if (saved) editor.setValue(saved, 1);
-      else editor.setValue(languagePlaceholders[lang] || "", 1);
-      printOutput(`Switched to ${lang.toUpperCase()} mode.`, 'success');
-    }
-
-    window.onload = () => {
-      loadCode();
-    };
-
-    setInterval(saveCode, 10000);
-
-    langSelect.addEventListener("change", () => {
-      const lang = langSelect.value;
-      editor.session.setMode("ace/mode/" + lang);
-      loadCode();
-    });
-
-    runBtn.addEventListener("click", () => {
-      const code = editor.getValue();
-      const lang = langSelect.value;
-      if (!code.trim()) return printOutput("No code to run.", 'error');
-
-      switch (lang) {
-        case "lua":
-          printOutput("Run your Lua code in a Lua runtime or Roblox executor.", 'success');
-          break;
-        case "javascript":
-        case "typescript":
-          try {
-            const result = new Function(code)();
-            printOutput(result === undefined ? `${lang} ran successfully.` : String(result), 'success');
-          } catch (e) {
-            printOutput(`Error: ${e.message}`, 'error');
-          }
-          break;
-        case "html":
-          const win = window.open();
-          if (!win) return printOutput("Popup blocked. Allow popups for this site.", "error");
-          win.document.write(code);
-          win.document.close();
-          printOutput("HTML opened in new tab.", 'success');
-          break;
-        case "css":
-          const styleWin = window.open();
-          if (!styleWin) return printOutput("Popup blocked. Allow popups for this site.", "error");
-          styleWin.document.write(`<style>${code}</style>`);
-          styleWin.document.close();
-          printOutput("CSS applied in new tab.", 'success');
-          break;
-        case "json":
-          try {
-            JSON.parse(code);
-            printOutput("Valid JSON.", "success");
-          } catch {
-            printOutput("Invalid JSON.", "error");
-          }
-          break;
-        case "python":
-        case "java":
-        case "c_cpp":
-        case "ruby":
-        case "php":
-        case "golang":
-          printOutput(`${lang} runtime not supported here. Use an appropriate IDE or compiler.`, 'error');
-          break;
-        default:
-          printOutput("Language not supported for running code.", 'error');
-          break;
+    document.getElementById("languageSelect").addEventListener("change", e => {
+      const lang = e.target.value;
+      if (lang === "batchfile") {
+        editor.session.setMode("ace/mode/text");
+        editor.setValue("@echo off\nREM Batch code here", 1);
+      } else {
+        editor.session.setMode("ace/mode/" + languageMap[lang]);
+        editor.setValue("// Start coding in " + lang, 1);
       }
     });
 
-    fullscreenBtn.addEventListener("click", () => {
+    document.getElementById("runBtn").onclick = () => {
+      const lang = document.getElementById("languageSelect").value;
+      const code = editor.getValue();
+      const out = document.getElementById("output-box");
+
+      if (lang === "html" || lang === "css") {
+        const win = window.open("about:blank");
+        win.document.write(lang === "html" ? code : `<style>${code}</style>`);
+        win.document.close();
+        out.innerText = "Opened in new tab.";
+      } else if (lang === "javascript") {
+        try {
+          const result = eval(code);
+          out.innerText = result || "Executed successfully.";
+        } catch (err) {
+          out.innerText = "Error: " + err.message;
+        }
+      } else if (lang === "batchfile") {
+        const win = window.open("about:blank");
+        win.document.write(`<pre>${code}</pre>`);
+        out.innerText = "Batch file opened in new tab.";
+      } else {
+        out.innerText = "Language not supported for running here.";
+      }
+    };
+
+    document.getElementById("fullscreenBtn").onclick = () => {
       document.body.classList.add("fullscreen");
-      setTimeout(() => editor.resize(), 100);
-    });
+      editor.resize();
+    };
 
-    exitFullscreenBtn.addEventListener("click", () => {
-      document.body.classList.remove("fullscreen");
-      setTimeout(() => editor.resize(), 100);
-    });
-
-    obfuscateBtn.addEventListener("click", () => {
-      alert("This is TST's Obfuscator!");
+    document.getElementById("obfuscateBtn").onclick = () => {
       window.location.href = "https://luaobfuscations.netlify.app";
-    });
+    };
 
-    copyBtn.addEventListener("click", async () => {
+    document.getElementById("copyBtn").onclick = async () => {
       try {
-        const text = editor.getValue();
-        await navigator.clipboard.writeText(text);
-        printOutput("Code copied to clipboard!", "success");
+        await navigator.clipboard.writeText(editor.getValue());
+        document.getElementById("output-box").innerText = "Code copied!";
       } catch {
-        printOutput("Failed to copy code. Try manually copying.", "error");
+        document.getElementById("output-box").innerText = "Failed to copy.";
       }
-    });
+    };
 
-    clearBtn.addEventListener("click", () => {
-      if (confirm("Are you sure you want to clear all the code?")) {
-        editor.setValue("", 1);
-        printOutput("Editor cleared.", "success");
-      }
-    });
+    document.getElementById("clearBtn").onclick = () => {
+      if (confirm("Clear all code?")) editor.setValue("");
+    };
 
-    downloadBtn.addEventListener("click", () => {
-      const lang = langSelect.value;
-      const code = editor.getValue();
-      const blob = new Blob([code], {type: "text/plain"});
+    document.getElementById("downloadBtn").onclick = () => {
+      const lang = document.getElementById("languageSelect").value;
+      const ext = {
+        javascript: "js", typescript: "ts", python: "py",
+        html: "html", css: "css", lua: "lua", json: "json",
+        java: "java", c_cpp: "c", ruby: "rb", php: "php",
+        golang: "go", batchfile: "bat"
+      }[lang] || "txt";
+
+      const blob = new Blob([editor.getValue()], {type: "text/plain"});
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      const extMap = {
-        javascript: "js",
-        typescript: "ts",
-        python: "py",
-        html: "html",
-        css: "css",
-        lua: "lua",
-        json: "json",
-        java: "java",
-        c_cpp: "c",
-        ruby: "rb",
-        php: "php",
-        golang: "go"
-      };
-      a.download = `code.${extMap[lang] || "txt"}`;
-      document.body.appendChild(a);
+      a.download = `code.${ext}`;
       a.click();
-      a.remove();
-      printOutput("Code downloaded.", "success");
-    });
+    };
 
-    themeToggleBtn.addEventListener("click", () => {
-      if (document.body.classList.contains("white")) {
-        document.body.classList.remove("white");
-        editor.setTheme("ace/theme/monokai");
-        printOutput("Switched to Black Theme.", "success");
-      } else {
-        document.body.classList.add("white");
-        editor.setTheme("ace/theme/chrome");
-        printOutput("Switched to White Theme.", "success");
-      }
+    document.getElementById("toolsSelect").addEventListener("change", (e) => {
+      if (e.target.value === "ip") window.open("https://ipinfo.io");
+      else if (e.target.value === "ns") window.open("https://mxtoolbox.com/NSLookup.aspx");
     });
   </script>
 </body>
