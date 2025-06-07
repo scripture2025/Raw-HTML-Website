@@ -63,13 +63,16 @@
   </style>
 </head>
 <body>
-  <h1>⚡ Site Creator</h1>
+  <h1>⚡ HTML Site Creator</h1>
   <textarea id="htmlInput" placeholder="Paste your full HTML code here..."></textarea>
   <button onclick="createPage()">✨ Create Page</button>
 
   <div id="output"></div>
 
   <script>
+    // Temporary in-memory site map (lost on reload)
+    const siteData = {};
+
     function generateID(length = 6) {
       const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
       let id = '';
@@ -84,8 +87,9 @@
       if (!html) return alert("Please paste HTML code!");
 
       const id = "html_" + generateID();
-      const hash = `${id}=${encodeURIComponent(html)}`;
-      const fullLink = `${location.origin}${location.pathname}#${hash}`;
+      siteData[id] = html;
+
+      const fullLink = location.origin + location.pathname + "#" + id;
 
       document.getElementById("output").innerHTML = `
         <p>✅ Page created! Share this link:</p>
@@ -94,18 +98,16 @@
       `;
     }
 
-    // On page load: check if the URL contains an ID and HTML payload
     window.onload = () => {
-      const hash = location.hash.slice(1); // Remove the "#"
-      const [id, rawHTML] = hash.split("=");
-      if (id && rawHTML) {
-        try {
-          const html = decodeURIComponent(rawHTML);
+      const hash = location.hash.replace("#", "");
+      if (hash.startsWith("html_")) {
+        const html = siteData[hash];
+        if (html) {
           document.open();
           document.write(html);
           document.close();
-        } catch {
-          document.body.innerHTML = "<h2 style='color:red;'>⚠️ Invalid HTML content</h2>";
+        } else {
+          document.body.innerHTML = "<h2 style='color:red;'>⚠️ That page only exists in memory. Please create a new one first.</h2>";
         }
       }
     };
