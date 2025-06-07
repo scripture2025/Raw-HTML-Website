@@ -148,6 +148,13 @@
     <option value="python">Python</option>
     <option value="html">HTML</option>
     <option value="css">CSS</option>
+    <option value="typescript">TypeScript</option>
+    <option value="json">JSON</option>
+    <option value="java">Java</option>
+    <option value="c_cpp">C / C++</option>
+    <option value="ruby">Ruby</option>
+    <option value="php">PHP</option>
+    <option value="golang">Go</option>
   </select>
 
   <div id="editor" role="textbox" aria-multiline="true" aria-label="Code editor"></div>
@@ -155,6 +162,7 @@
   <div class="button-group">
     <button id="runBtn">Run Code</button>
     <button id="fullscreenBtn">Fullscreen</button>
+    <button id="exitFullscreenBtn">Exit Fullscreen</button>
     <button id="obfuscateBtn">Obfuscations</button>
     <button id="copyBtn">Copy Code</button>
     <button id="clearBtn">Clear Editor</button>
@@ -173,6 +181,13 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-python.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-html.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-css.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-typescript.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-json.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-java.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-c_cpp.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-ruby.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-php.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-golang.js"></script>
 
   <script>
     const editor = ace.edit("editor");
@@ -189,6 +204,7 @@
     const downloadBtn = document.getElementById("downloadBtn");
     const themeToggleBtn = document.getElementById("themeToggleBtn");
     const fullscreenBtn = document.getElementById("fullscreenBtn");
+    const exitFullscreenBtn = document.getElementById("exitFullscreenBtn");
     const runBtn = document.getElementById("runBtn");
 
     function printOutput(text, type = '') {
@@ -203,7 +219,14 @@
       javascript: "// Your JavaScript code here\n",
       python: "# Your Python code here\n",
       html: "<!-- Your HTML code here -->\n",
-      css: "/* Your CSS code here */\n"
+      css: "/* Your CSS code here */\n",
+      typescript: "// Your TypeScript code here\n",
+      json: "{\n  \"key\": \"value\"\n}\n",
+      java: "// Your Java code here\n",
+      c_cpp: "// Your C/C++ code here\n",
+      ruby: "# Your Ruby code here\n",
+      php: "<?php\n// Your PHP code here\n?>\n",
+      golang: "// Your Go code here\n",
     };
 
     function saveCode() {
@@ -215,7 +238,7 @@
       const lang = langSelect.value;
       const saved = localStorage.getItem(`code_${lang}`);
       if (saved) editor.setValue(saved, 1);
-      else editor.setValue(languagePlaceholders[lang], 1);
+      else editor.setValue(languagePlaceholders[lang] || "", 1);
       printOutput(`Switched to ${lang.toUpperCase()} mode.`, 'success');
     }
 
@@ -241,10 +264,10 @@
           printOutput("Run your Lua code in a Lua runtime or Roblox executor.", 'success');
           break;
         case "javascript":
+        case "typescript":
           try {
-            // Use Function constructor instead of eval for better scope control
             const result = new Function(code)();
-            printOutput(result === undefined ? 'JavaScript ran successfully.' : String(result), 'success');
+            printOutput(result === undefined ? `${lang} ran successfully.` : String(result), 'success');
           } catch (e) {
             printOutput(`Error: ${e.message}`, 'error');
           }
@@ -263,14 +286,35 @@
           styleWin.document.close();
           printOutput("CSS applied in new tab.", 'success');
           break;
+        case "json":
+          try {
+            JSON.parse(code);
+            printOutput("Valid JSON.", "success");
+          } catch {
+            printOutput("Invalid JSON.", "error");
+          }
+          break;
         case "python":
-          printOutput("Python runtime not supported here.", 'error');
+        case "java":
+        case "c_cpp":
+        case "ruby":
+        case "php":
+        case "golang":
+          printOutput(`${lang} runtime not supported here. Use an appropriate IDE or compiler.`, 'error');
+          break;
+        default:
+          printOutput("Language not supported for running code.", 'error');
           break;
       }
     });
 
     fullscreenBtn.addEventListener("click", () => {
-      document.body.classList.toggle("fullscreen");
+      document.body.classList.add("fullscreen");
+      setTimeout(() => editor.resize(), 100);
+    });
+
+    exitFullscreenBtn.addEventListener("click", () => {
+      document.body.classList.remove("fullscreen");
       setTimeout(() => editor.resize(), 100);
     });
 
@@ -302,7 +346,21 @@
       const blob = new Blob([code], {type: "text/plain"});
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = `code.${lang === "javascript" ? "js" : lang === "python" ? "py" : lang === "html" ? "html" : lang === "css" ? "css" : "lua"}`;
+      const extMap = {
+        javascript: "js",
+        typescript: "ts",
+        python: "py",
+        html: "html",
+        css: "css",
+        lua: "lua",
+        json: "json",
+        java: "java",
+        c_cpp: "c",
+        ruby: "rb",
+        php: "php",
+        golang: "go"
+      };
+      a.download = `code.${extMap[lang] || "txt"}`;
       document.body.appendChild(a);
       a.click();
       a.remove();
