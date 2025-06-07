@@ -63,14 +63,13 @@
   </style>
 </head>
 <body>
-  <h1>⚡ HTML Site Creator</h1>
+  <h1>⚡ Best HTML Site Creator</h1>
   <textarea id="htmlInput" placeholder="Paste your full HTML code here..."></textarea>
   <button onclick="createPage()">✨ Create Page</button>
 
   <div id="output"></div>
 
   <script>
-    // Temporary in-memory site map (lost on reload)
     const siteData = {};
 
     function generateID(length = 6) {
@@ -89,7 +88,7 @@
       const id = "html_" + generateID();
       siteData[id] = html;
 
-      const fullLink = location.origin + location.pathname + "#" + id;
+      const fullLink = `${location.origin}${location.pathname}#${id}`;
 
       document.getElementById("output").innerHTML = `
         <p>✅ Page created! Share this link:</p>
@@ -98,6 +97,7 @@
       `;
     }
 
+    // If visiting a generated hash link
     window.onload = () => {
       const hash = location.hash.replace("#", "");
       if (hash.startsWith("html_")) {
@@ -107,7 +107,10 @@
           document.write(html);
           document.close();
         } else {
-          document.body.innerHTML = "<h2 style='color:red;'>⚠️ That page only exists in memory. Please create a new one first.</h2>";
+          document.body.innerHTML = `
+            <h2 style='color:red;'>⚠️ This page only works within the session it was created in.</h2>
+            <p style='color:#00ff88;'>Go back and recreate it to get a fresh working link.</p>
+          `;
         }
       }
     };
