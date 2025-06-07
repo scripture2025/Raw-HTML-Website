@@ -17,7 +17,7 @@
       margin: 20px;
       text-align: center;
     }
-    #languageSelect, #toolsSelect {
+    #languageSelect, #toolsSelect, #lookupInput {
       background: #000;
       color: #fff;
       padding: 6px;
@@ -58,6 +58,7 @@
       max-height: 150px;
       overflow-y: auto;
       font-family: monospace;
+      white-space: pre-wrap;
     }
     .fullscreen *:not(#editor) {
       display: none !important;
@@ -99,6 +100,9 @@
       <option value="ip">IP Lookup</option>
       <option value="ns">NS Lookup</option>
     </select>
+
+    <input type="text" id="lookupInput" placeholder="Enter IP or domain..." />
+    <button id="lookupBtn">Run Tool</button>
   </div>
 
   <div id="editor">-- Your Lua code here</div>
@@ -121,19 +125,9 @@
     editor.session.setMode("ace/mode/lua");
 
     const languageMap = {
-      lua: "lua",
-      javascript: "javascript",
-      python: "python",
-      html: "html",
-      css: "css",
-      typescript: "typescript",
-      json: "json",
-      java: "java",
-      c_cpp: "c_cpp",
-      ruby: "ruby",
-      php: "php",
-      golang: "golang",
-      batchfile: "batchfile"
+      lua: "lua", javascript: "javascript", python: "python", html: "html",
+      css: "css", typescript: "typescript", json: "json", java: "java",
+      c_cpp: "c_cpp", ruby: "ruby", php: "php", golang: "golang", batchfile: "batchfile"
     };
 
     document.getElementById("languageSelect").addEventListener("change", e => {
@@ -198,10 +192,9 @@
     document.getElementById("downloadBtn").onclick = () => {
       const lang = document.getElementById("languageSelect").value;
       const ext = {
-        javascript: "js", typescript: "ts", python: "py",
-        html: "html", css: "css", lua: "lua", json: "json",
-        java: "java", c_cpp: "c", ruby: "rb", php: "php",
-        golang: "go", batchfile: "bat"
+        javascript: "js", typescript: "ts", python: "py", html: "html",
+        css: "css", lua: "lua", json: "json", java: "java", c_cpp: "c",
+        ruby: "rb", php: "php", golang: "go", batchfile: "bat"
       }[lang] || "txt";
 
       const blob = new Blob([editor.getValue()], {type: "text/plain"});
@@ -211,10 +204,34 @@
       a.click();
     };
 
-    document.getElementById("toolsSelect").addEventListener("change", (e) => {
-      if (e.target.value === "ip") window.open("https://ipinfo.io");
-      else if (e.target.value === "ns") window.open("https://mxtoolbox.com/NSLookup.aspx");
-    });
+    document.getElementById("lookupBtn").onclick = async () => {
+      const tool = document.getElementById("toolsSelect").value;
+      const input = document.getElementById("lookupInput").value.trim();
+      const output = document.getElementById("output-box");
+
+      if (!input) {
+        output.innerText = "Please enter a valid IP or domain.";
+        return;
+      }
+
+      output.innerText = "Fetching data...";
+
+      try {
+        if (tool === "ip") {
+          const res = await fetch(`https://ipinfo.io/${input}/json`);
+          const data = await res.json();
+          output.innerText = JSON.stringify(data, null, 2);
+        } else if (tool === "ns") {
+          const res = await fetch(`https://api.hackertarget.com/dnslookup/?q=${input}`);
+          const text = await res.text();
+          output.innerText = text;
+        } else {
+          output.innerText = "Select a tool first.";
+        }
+      } catch (err) {
+        output.innerText = "Lookup failed: " + err.message;
+      }
+    };
   </script>
 </body>
 </html>
