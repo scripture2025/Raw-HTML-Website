@@ -73,6 +73,13 @@
       border-radius: 0;
     }
   </style>
+  <!-- Load Prettier -->
+  <script src="https://unpkg.com/prettier@3.2.5/standalone.js"></script>
+  <script src="https://unpkg.com/prettier@3.2.5/parser-babel.js"></script>
+  <script src="https://unpkg.com/prettier@3.2.5/parser-html.js"></script>
+  <script src="https://unpkg.com/prettier@3.2.5/parser-postcss.js"></script>
+  <script src="https://unpkg.com/prettier@3.2.5/parser-typescript.js"></script>
+  <script src="https://unpkg.com/js-beautify@1.14.7/js/lib/beautify.js"></script>
 </head>
 <body>
 
@@ -111,6 +118,8 @@
     <button id="runBtn">Run Code</button>
     <button id="fullscreenBtn">Fullscreen</button>
     <button id="obfuscateBtn">Obfuscator</button>
+    <button id="beautifyBtn">Beautify Your Code</button>
+    <button id="minifyBtn">Minify Your Code</button>
     <button id="copyBtn">Copy Code</button>
     <button id="clearBtn">Clear Editor</button>
     <button id="downloadBtn">Download Code</button>
@@ -130,15 +139,14 @@
       c_cpp: "c_cpp", ruby: "ruby", php: "php", golang: "golang", batchfile: "batchfile"
     };
 
+    const prettierParsers = {
+      javascript: "babel", typescript: "typescript", html: "html", css: "css", json: "json"
+    };
+
     document.getElementById("languageSelect").addEventListener("change", e => {
       const lang = e.target.value;
-      if (lang === "batchfile") {
-        editor.session.setMode("ace/mode/text");
-        editor.setValue("@echo off\nREM Batch code here", 1);
-      } else {
-        editor.session.setMode("ace/mode/" + languageMap[lang]);
-        editor.setValue("// Start coding in " + lang, 1);
-      }
+      editor.session.setMode("ace/mode/" + (languageMap[lang] || "text"));
+      editor.setValue("// Start coding in " + lang, 1);
     });
 
     document.getElementById("runBtn").onclick = () => {
@@ -158,12 +166,49 @@
         } catch (err) {
           out.innerText = "Error: " + err.message;
         }
-      } else if (lang === "batchfile") {
-        const win = window.open("about:blank");
-        win.document.write(`<pre>${code}</pre>`);
-        out.innerText = "Batch file opened in new tab.";
       } else {
         out.innerText = "Language not supported for running here.";
+      }
+    };
+
+    document.getElementById("beautifyBtn").onclick = () => {
+      const lang = document.getElementById("languageSelect").value;
+      const code = editor.getValue();
+
+      try {
+        if (prettierParsers[lang]) {
+          const formatted = prettier.format(code, {
+            parser: prettierParsers[lang],
+            plugins: prettierPlugins
+          });
+          editor.setValue(formatted, 1);
+        } else if (lang === "lua" || lang === "php" || lang === "python") {
+          editor.setValue(js_beautify(code), 1);
+        } else {
+          alert("Beautifier not available for selected language.");
+        }
+      } catch (e) {
+        alert("Beautify failed: " + e.message);
+      }
+    };
+
+    document.getElementById("minifyBtn").onclick = () => {
+      const lang = document.getElementById("languageSelect").value;
+      let code = editor.getValue();
+
+      try {
+        if (lang === "javascript" || lang === "typescript") {
+          code = code.replace(/\s+/g, ' ').replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '');
+        } else if (lang === "html" || lang === "css") {
+          code = code.replace(/\n|\r|\t/g, '').replace(/\s{2,}/g, ' ');
+        } else if (lang === "json") {
+          code = JSON.stringify(JSON.parse(code));
+        } else {
+          code = code.replace(/\s+/g, ' ');
+        }
+        editor.setValue(code, 1);
+      } catch (e) {
+        alert("Minify failed: " + e.message);
       }
     };
 
