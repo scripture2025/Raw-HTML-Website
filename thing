@@ -1,0 +1,701 @@
+--[[
+    Custom Kill Aura GUI - ULTRA FAST
+    - Attacks every frame (RenderStepped)
+    - Multiplier applies each frame (spams remote)
+    - Perfect dragging, centered, TMK auto‑whitelist
+]]
+
+-- Services
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+
+-- Remote
+local CombatRF = ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Services"):WaitForChild("CombatService"):WaitForChild("RF"):WaitForChild("Hit")
+
+local localPlayer = Players.LocalPlayer
+
+-- State
+local killAuraActive = false
+local hitMultiplier = 1
+local friends = {}
+local targets = {}
+local autoWhitelistTMK = false
+local tmkAutoAdded = {}
+
+-- Helper functions
+local function tableFind(t, val)
+    for i, v in ipairs(t) do
+        if v == val then return i end
+    end
+    return nil
+end
+
+local function normalize(name)
+    return name:lower():gsub("%s+", "")
+end
+
+local function containsTMK(name)
+    return name:lower():find("tmk") ~= nil
+end
+
+local function isInList(player, list)
+    local pName = normalize(player.Name)
+    local pDisplay = normalize(player.DisplayName)
+    for _, entry in ipairs(list) do
+        local eNorm = normalize(entry)
+        if pName == eNorm or pDisplay == eNorm then
+            return true
+        end
+    end
+    return false
+end
+
+-- Auto-whitelist TMK
+local function refreshAutoWhitelist()
+    if not autoWhitelistTMK then
+        for _, name in ipairs(tmkAutoAdded) do
+            local idx = tableFind(friends, name)
+            if idx then table.remove(friends, idx) end
+        end
+        tmkAutoAdded = {}
+        updateFriendDisplay()
+        return
+    end
+
+    local function addIfTMK(plr)
+        if containsTMK(plr.Name) or containsTMK(plr.DisplayName) then
+            local nameToStore = plr.Name
+            if not tableFind(friends, nameToStore) then
+                table.insert(friends, nameToStore)
+                table.insert(tmkAutoAdded, nameToStore)
+            end
+        end
+    end
+
+    for _, name in ipairs(tmkAutoAdded) do
+        local idx = tableFind(friends, name)
+        if idx then table.remove(friends, idx) end
+    end
+    tmkAutoAdded = {}
+
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= localPlayer then
+            addIfTMK(plr)
+        end
+    end
+    updateFriendDisplay()
+end
+
+local function setupPlayerAddedListener()
+    local conn
+    conn = Players.PlayerAdded:Connect(function(plr)
+        if autoWhitelistTMK and (containsTMK(plr.Name) or containsTMK(plr.DisplayName)) then
+            if not tableFind(friends, plr.Name) then
+                table.insert(friends, plr.Name)
+                table.insert(tmkAutoAdded, plr.Name)
+                updateFriendDisplay()
+            end
+        end
+    end)
+    return conn
+end
+
+local playerAddedConn = nil
+local function setAutoWhitelist(enabled)
+    autoWhitelistTMK = enabled
+    if playerAddedConn then playerAddedConn:Disconnect() end
+    if enabled then
+        playerAddedConn = setupPlayerAddedListener()
+    end
+    refreshAutoWhitelist()
+end
+
+-- Get nearest target (respects friends + targets)
+local function getNearestTarget()
+    local char = localPlayer.Character
+    if not char then return nil end
+    local myRoot = char:FindFirstChild("HumanoidRootPart")
+    if not myRoot then return nil end
+
+    local nearest = nil
+    local shortest = math.huge
+
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= localPlayer then
+            if isInList(plr, friends) then continue end
+            if #targets > 0 and not isInList(plr, targets) then continue end
+            local tChar = plr.Character
+            if tChar then
+                local root = tChar:FindFirstChild("HumanoidRootPart")
+                local hum = tChar:FindFirstChildOfClass("Humanoid")
+                if root and hum and hum.Health > 0 then
+                    local dist = (myRoot.Position - root.Position).Magnitude
+                    if dist < shortest then
+                        shortest = dist
+                        nearest = plr
+                    end
+                end
+            end
+        end
+    end
+    return nearest
+end
+
+-- ULTRA FAST ATTACK: called every frame
+local function attack()
+    if not killAuraActive then return end
+    local target = getNearestTarget()
+    if target and target.Character then
+        local hum = target.Character:FindFirstChildOfClass("Humanoid")
+        if hum and hum.Health > 0 then
+            for _ = 1, hitMultiplier do
+                pcall(function()
+                    CombatRF:InvokeServer(hum)
+                end)
+            end
+        end
+    end
+end
+
+-- Kill aura connected to RenderStepped (every frame, ~60+ times/sec)
+local attackConnection = nil
+local function setKillAura(active)
+    killAuraActive = active
+    if attackConnection then
+        attackConnection:Disconnect()
+        attackConnection = nil
+    end
+    if active then
+        attackConnection = RunService.RenderStepped:Connect(attack)
+    end
+end
+
+-- ========== GUI CREATION ==========
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "KillAuraGUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = (gethui and gethui()) or game:GetService("CoreGui") or localPlayer.PlayerGui
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 320, 0, 480)
+mainFrame.Position = UDim2.new(0.5, -160, 0.5, -240)
+mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+mainFrame.BorderSizePixel = 0
+mainFrame.BackgroundTransparency = 0.05
+mainFrame.ClipsDescendants = true
+mainFrame.Parent = screenGui
+
+local corner = Instance.new("UICorner", mainFrame)
+corner.CornerRadius = UDim.new(0, 12)
+
+-- Title bar
+local titleBar = Instance.new("Frame", mainFrame)
+titleBar.Size = UDim2.new(1, 0, 0, 32)
+titleBar.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+titleBar.BorderSizePixel = 0
+local titleCorner = Instance.new("UICorner", titleBar)
+titleCorner.CornerRadius = UDim.new(0, 12)
+
+local titleLabel = Instance.new("TextLabel", titleBar)
+titleLabel.Size = UDim2.new(1, -60, 1, 0)
+titleLabel.Position = UDim2.new(0, 12, 0, 0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "Brandon Whitelistable Kill Aura"
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.TextSize = 14
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local minimizeBtn = Instance.new("TextButton", titleBar)
+minimizeBtn.Size = UDim2.new(0, 28, 0, 28)
+minimizeBtn.Position = UDim2.new(1, -32, 0.5, -14)
+minimizeBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+minimizeBtn.Text = "−"
+minimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+minimizeBtn.TextSize = 20
+minimizeBtn.Font = Enum.Font.GothamBold
+minimizeBtn.BorderSizePixel = 0
+local minCorner = Instance.new("UICorner", minimizeBtn)
+minCorner.CornerRadius = UDim.new(0, 6)
+
+local content = Instance.new("Frame", mainFrame)
+content.Name = "Content"
+content.Size = UDim2.new(1, 0, 1, -32)
+content.Position = UDim2.new(0, 0, 0, 32)
+content.BackgroundTransparency = 1
+content.ClipsDescendants = true
+
+-- Dragging with bounds
+local dragging = false
+local dragStart = nil
+local frameStart = nil
+
+local function getScreenSize()
+    local screen = screenGui.AbsoluteSize
+    if screen.X == 0 then
+        screen = workspace.CurrentCamera.ViewportSize
+    end
+    return screen
+end
+
+local function clampFramePosition(offsetX, offsetY)
+    local screenSize = getScreenSize()
+    local frameSize = mainFrame.AbsoluteSize
+    local minX = 0
+    local maxX = screenSize.X - frameSize.X
+    local minY = 0
+    local maxY = screenSize.Y - frameSize.Y
+    return math.clamp(offsetX, minX, maxX), math.clamp(offsetY, minY, maxY)
+end
+
+titleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        frameStart = mainFrame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        local newX = frameStart.X.Offset + delta.X
+        local newY = frameStart.Y.Offset + delta.Y
+        local clampedX, clampedY = clampFramePosition(newX, newY)
+        mainFrame.Position = UDim2.new(0, clampedX, 0, clampedY)
+    end
+end)
+
+-- Minimize / restore
+local minimized = false
+local originalSize = mainFrame.Size
+
+minimizeBtn.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    if minimized then
+        TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            Size = UDim2.new(originalSize.X.Scale, originalSize.X.Offset, 0, 32)
+        }):Play()
+        content.Visible = false
+        minimizeBtn.Text = "+"
+    else
+        TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            Size = originalSize
+        }):Play()
+        content.Visible = true
+        minimizeBtn.Text = "−"
+    end
+end)
+
+-- ========== UI ELEMENTS ==========
+local padding = 12
+local yOffset = 10
+
+-- Kill Aura Toggle
+local toggleBtn = Instance.new("TextButton", content)
+toggleBtn.Size = UDim2.new(1, -padding*2, 0, 36)
+toggleBtn.Position = UDim2.new(0, padding, 0, yOffset)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+toggleBtn.Text = "Kill Aura: OFF"
+toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleBtn.TextSize = 13
+toggleBtn.Font = Enum.Font.GothamBold
+toggleBtn.BorderSizePixel = 0
+local toggleCorner = Instance.new("UICorner", toggleBtn)
+toggleCorner.CornerRadius = UDim.new(0, 8)
+yOffset = yOffset + 36 + 8
+
+-- Auto-whitelist TMK Toggle
+local autoTMKBtn = Instance.new("TextButton", content)
+autoTMKBtn.Size = UDim2.new(1, -padding*2, 0, 32)
+autoTMKBtn.Position = UDim2.new(0, padding, 0, yOffset)
+autoTMKBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+autoTMKBtn.Text = "Auto-whitelist TMK: OFF"
+autoTMKBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+autoTMKBtn.TextSize = 12
+autoTMKBtn.Font = Enum.Font.GothamBold
+autoTMKBtn.BorderSizePixel = 0
+local autoCorner = Instance.new("UICorner", autoTMKBtn)
+autoCorner.CornerRadius = UDim.new(0, 6)
+
+autoTMKBtn.MouseButton1Click:Connect(function()
+    local newState = not autoWhitelistTMK
+    setAutoWhitelist(newState)
+    autoTMKBtn.Text = newState and "Auto-whitelist TMK: ON" or "Auto-whitelist TMK: OFF"
+    autoTMKBtn.BackgroundColor3 = newState and Color3.fromRGB(0, 100, 0) or Color3.fromRGB(50, 50, 55)
+end)
+yOffset = yOffset + 32 + 8
+
+-- Friend Section
+local friendLabel = Instance.new("TextLabel", content)
+friendLabel.Size = UDim2.new(1, -padding*2, 0, 16)
+friendLabel.Position = UDim2.new(0, padding, 0, yOffset)
+friendLabel.BackgroundTransparency = 1
+friendLabel.Text = "Friends (click to toggle) [0]"
+friendLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+friendLabel.TextSize = 12
+friendLabel.Font = Enum.Font.GothamBold
+friendLabel.TextXAlignment = Enum.TextXAlignment.Left
+yOffset = yOffset + 18
+
+local friendDropdownBtn = Instance.new("TextButton", content)
+friendDropdownBtn.Size = UDim2.new(1, -padding*2, 0, 32)
+friendDropdownBtn.Position = UDim2.new(0, padding, 0, yOffset)
+friendDropdownBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+friendDropdownBtn.Text = "Select Player"
+friendDropdownBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+friendDropdownBtn.TextSize = 12
+friendDropdownBtn.Font = Enum.Font.Gotham
+friendDropdownBtn.BorderSizePixel = 0
+local friendDropCorner = Instance.new("UICorner", friendDropdownBtn)
+friendDropCorner.CornerRadius = UDim.new(0, 6)
+
+local friendDropdownList = Instance.new("ScrollingFrame", content)
+friendDropdownList.Size = UDim2.new(1, -padding*2, 0, 100)
+friendDropdownList.Position = UDim2.new(0, padding, 0, yOffset + 34)
+friendDropdownList.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+friendDropdownList.BorderSizePixel = 0
+friendDropdownList.Visible = false
+friendDropdownList.ScrollBarThickness = 4
+local friendListCorner = Instance.new("UICorner", friendDropdownList)
+friendListCorner.CornerRadius = UDim.new(0, 6)
+local friendListLayout = Instance.new("UIListLayout", friendDropdownList)
+friendListLayout.Padding = UDim.new(0, 2)
+
+yOffset = yOffset + 34 + 100 + 12
+
+-- Target Section
+local targetLabel = Instance.new("TextLabel", content)
+targetLabel.Size = UDim2.new(1, -padding*2, 0, 16)
+targetLabel.Position = UDim2.new(0, padding, 0, yOffset)
+targetLabel.BackgroundTransparency = 1
+targetLabel.Text = "Targets (click to toggle) [0]"
+targetLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+targetLabel.TextSize = 12
+targetLabel.Font = Enum.Font.GothamBold
+targetLabel.TextXAlignment = Enum.TextXAlignment.Left
+yOffset = yOffset + 18
+
+local targetDropdownBtn = Instance.new("TextButton", content)
+targetDropdownBtn.Size = UDim2.new(1, -padding*2, 0, 32)
+targetDropdownBtn.Position = UDim2.new(0, padding, 0, yOffset)
+targetDropdownBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+targetDropdownBtn.Text = "Select Player"
+targetDropdownBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+targetDropdownBtn.TextSize = 12
+targetDropdownBtn.Font = Enum.Font.Gotham
+targetDropdownBtn.BorderSizePixel = 0
+local targetDropCorner = Instance.new("UICorner", targetDropdownBtn)
+targetDropCorner.CornerRadius = UDim.new(0, 6)
+
+local targetDropdownList = Instance.new("ScrollingFrame", content)
+targetDropdownList.Size = UDim2.new(1, -padding*2, 0, 100)
+targetDropdownList.Position = UDim2.new(0, padding, 0, yOffset + 34)
+targetDropdownList.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+targetDropdownList.BorderSizePixel = 0
+targetDropdownList.Visible = false
+targetDropdownList.ScrollBarThickness = 4
+local targetListCorner = Instance.new("UICorner", targetDropdownList)
+targetListCorner.CornerRadius = UDim.new(0, 6)
+local targetListLayout = Instance.new("UIListLayout", targetDropdownList)
+targetListLayout.Padding = UDim.new(0, 2)
+
+yOffset = yOffset + 34 + 100 + 12
+
+-- Hit Multiplier Slider
+local multLabel = Instance.new("TextLabel", content)
+multLabel.Size = UDim2.new(1, -padding*2, 0, 18)
+multLabel.Position = UDim2.new(0, padding, 0, yOffset)
+multLabel.BackgroundTransparency = 1
+multLabel.Text = "Hit Multiplier: 1"
+multLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+multLabel.TextSize = 12
+multLabel.Font = Enum.Font.Gotham
+multLabel.TextXAlignment = Enum.TextXAlignment.Left
+yOffset = yOffset + 20
+
+local sliderFrame = Instance.new("Frame", content)
+sliderFrame.Size = UDim2.new(1, -padding*2, 0, 20)
+sliderFrame.Position = UDim2.new(0, padding, 0, yOffset)
+sliderFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+sliderFrame.BorderSizePixel = 0
+local sliderCorner = Instance.new("UICorner", sliderFrame)
+sliderCorner.CornerRadius = UDim.new(0, 10)
+
+local sliderFill = Instance.new("Frame", sliderFrame)
+sliderFill.Size = UDim2.new(0.05, 0, 1, 0)
+sliderFill.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+sliderFill.BorderSizePixel = 0
+local fillCorner = Instance.new("UICorner", sliderFill)
+fillCorner.CornerRadius = UDim.new(0, 10)
+
+local sliderButton = Instance.new("TextButton", sliderFrame)
+sliderButton.Size = UDim2.new(0, 20, 0, 20)
+sliderButton.Position = UDim2.new(0.05, -10, 0, 0)
+sliderButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+sliderButton.Text = ""
+sliderButton.BorderSizePixel = 0
+local btnCorner = Instance.new("UICorner", sliderButton)
+btnCorner.CornerRadius = UDim.new(1, 0)
+
+yOffset = yOffset + 20 + 16
+
+-- Refresh & Remove Buttons
+local refreshBtn = Instance.new("TextButton", content)
+refreshBtn.Size = UDim2.new(0.45, -padding, 0, 32)
+refreshBtn.Position = UDim2.new(0, padding, 0, yOffset)
+refreshBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+refreshBtn.Text = "🔄 Refresh"
+refreshBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+refreshBtn.TextSize = 12
+refreshBtn.Font = Enum.Font.GothamBold
+refreshBtn.BorderSizePixel = 0
+local refCorner = Instance.new("UICorner", refreshBtn)
+refCorner.CornerRadius = UDim.new(0, 6)
+
+local removeAllBtn = Instance.new("TextButton", content)
+removeAllBtn.Size = UDim2.new(0.45, -padding, 0, 32)
+removeAllBtn.Position = UDim2.new(0.55, 0, 0, yOffset)
+removeAllBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+removeAllBtn.Text = "🗑️ Remove All"
+removeAllBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+removeAllBtn.TextSize = 12
+removeAllBtn.Font = Enum.Font.GothamBold
+removeAllBtn.BorderSizePixel = 0
+local remCorner = Instance.new("UICorner", removeAllBtn)
+remCorner.CornerRadius = UDim.new(0, 6)
+
+yOffset = yOffset + 32 + 12
+
+local friendPara = Instance.new("TextLabel", content)
+friendPara.Size = UDim2.new(1, -padding*2, 0, 36)
+friendPara.Position = UDim2.new(0, padding, 0, yOffset)
+friendPara.BackgroundTransparency = 1
+friendPara.Text = "Friends: None"
+friendPara.TextColor3 = Color3.fromRGB(180, 180, 180)
+friendPara.TextSize = 10
+friendPara.Font = Enum.Font.Gotham
+friendPara.TextXAlignment = Enum.TextXAlignment.Left
+friendPara.TextWrapped = true
+yOffset = yOffset + 36
+
+local targetPara = Instance.new("TextLabel", content)
+targetPara.Size = UDim2.new(1, -padding*2, 0, 36)
+targetPara.Position = UDim2.new(0, padding, 0, yOffset)
+targetPara.BackgroundTransparency = 1
+targetPara.Text = "Targets: None (attack everyone not friend)"
+targetPara.TextColor3 = Color3.fromRGB(180, 180, 180)
+targetPara.TextSize = 10
+targetPara.Font = Enum.Font.Gotham
+targetPara.TextXAlignment = Enum.TextXAlignment.Left
+targetPara.TextWrapped = true
+
+-- ========== UI LOGIC ==========
+local function getPlayerNames()
+    local names = {}
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= localPlayer then
+            table.insert(names, plr.Name)
+        end
+    end
+    table.sort(names)
+    return names
+end
+
+local function refreshFriendDropdownList(playerNames)
+    for _, child in ipairs(friendDropdownList:GetChildren()) do
+        if child:IsA("TextButton") then child:Destroy() end
+    end
+    for _, name in ipairs(playerNames) do
+        local btn = Instance.new("TextButton", friendDropdownList)
+        btn.Size = UDim2.new(1, -10, 0, 28)
+        btn.BackgroundColor3 = Color3.fromRGB(55, 55, 60)
+        btn.Text = name
+        btn.TextColor3 = Color3.fromRGB(220, 220, 220)
+        btn.TextSize = 12
+        btn.Font = Enum.Font.Gotham
+        btn.BorderSizePixel = 0
+        local btnCornerLocal = Instance.new("UICorner", btn)
+        btnCornerLocal.CornerRadius = UDim.new(0, 4)
+        btn.MouseButton1Click:Connect(function()
+            local idx = tableFind(friends, name)
+            if idx then
+                table.remove(friends, idx)
+                local autoIdx = tableFind(tmkAutoAdded, name)
+                if autoIdx then table.remove(tmkAutoAdded, autoIdx) end
+            else
+                table.insert(friends, name)
+            end
+            updateFriendDisplay()
+            friendDropdownList.Visible = false
+        end)
+    end
+    friendDropdownList.CanvasSize = UDim2.new(0, 0, 0, #playerNames * 30)
+end
+
+local function refreshTargetDropdownList(playerNames)
+    for _, child in ipairs(targetDropdownList:GetChildren()) do
+        if child:IsA("TextButton") then child:Destroy() end
+    end
+    for _, name in ipairs(playerNames) do
+        local btn = Instance.new("TextButton", targetDropdownList)
+        btn.Size = UDim2.new(1, -10, 0, 28)
+        btn.BackgroundColor3 = Color3.fromRGB(55, 55, 60)
+        btn.Text = name
+        btn.TextColor3 = Color3.fromRGB(220, 220, 220)
+        btn.TextSize = 12
+        btn.Font = Enum.Font.Gotham
+        btn.BorderSizePixel = 0
+        local btnCornerLocal = Instance.new("UICorner", btn)
+        btnCornerLocal.CornerRadius = UDim.new(0, 4)
+        btn.MouseButton1Click:Connect(function()
+            local idx = tableFind(targets, name)
+            if idx then
+                table.remove(targets, idx)
+            else
+                table.insert(targets, name)
+            end
+            updateTargetDisplay()
+            targetDropdownList.Visible = false
+        end)
+    end
+    targetDropdownList.CanvasSize = UDim2.new(0, 0, 0, #playerNames * 30)
+end
+
+local function refreshAllDropdowns()
+    local names = getPlayerNames()
+    refreshFriendDropdownList(names)
+    refreshTargetDropdownList(names)
+end
+
+function updateFriendDisplay()
+    local txt = #friends > 0 and table.concat(friends, ", ") or "None"
+    friendLabel.Text = "Friends (click to toggle) [" .. #friends .. "]"
+    friendPara.Text = "Friends: " .. txt
+end
+
+function updateTargetDisplay()
+    local txt = #targets > 0 and table.concat(targets, ", ") or "None (attack everyone not friend)"
+    targetLabel.Text = "Targets (click to toggle) [" .. #targets .. "]"
+    targetPara.Text = "Targets: " .. txt
+end
+
+-- Slider logic
+local function updateMultiplierDisplay(value)
+    local percent = (value - 1) / 19
+    sliderFill.Size = UDim2.new(percent, 0, 1, 0)
+    sliderButton.Position = UDim2.new(percent, -10, 0, 0)
+    multLabel.Text = "Hit Multiplier: " .. value
+    hitMultiplier = value
+end
+
+local sliderActive = false
+sliderButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        sliderActive = true
+    end
+end)
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        sliderActive = false
+    end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if sliderActive and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local framePos = sliderFrame.AbsolutePosition.X
+        local frameWidth = sliderFrame.AbsoluteSize.X
+        local mouseX = input.Position.X
+        local percent = math.clamp((mouseX - framePos) / frameWidth, 0, 1)
+        local value = math.floor(percent * 19 + 1)
+        updateMultiplierDisplay(value)
+    end
+end)
+
+-- Toggle kill aura
+toggleBtn.MouseButton1Click:Connect(function()
+    setKillAura(not killAuraActive)
+    toggleBtn.Text = killAuraActive and "Kill Aura: ON" or "Kill Aura: OFF"
+    toggleBtn.BackgroundColor3 = killAuraActive and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(60, 60, 70)
+end)
+
+refreshBtn.MouseButton1Click:Connect(refreshAllDropdowns)
+removeAllBtn.MouseButton1Click:Connect(function()
+    friends = {}
+    targets = {}
+    tmkAutoAdded = {}
+    updateFriendDisplay()
+    updateTargetDisplay()
+    refreshAllDropdowns()
+    friendDropdownList.Visible = false
+    targetDropdownList.Visible = false
+end)
+
+friendDropdownBtn.MouseButton1Click:Connect(function()
+    friendDropdownList.Visible = not friendDropdownList.Visible
+    if friendDropdownList.Visible then
+        refreshFriendDropdownList(getPlayerNames())
+    end
+end)
+targetDropdownBtn.MouseButton1Click:Connect(function()
+    targetDropdownList.Visible = not targetDropdownList.Visible
+    if targetDropdownList.Visible then
+        refreshTargetDropdownList(getPlayerNames())
+    end
+end)
+
+UserInputService.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        local mousePos = input.Position
+        local friendRect = friendDropdownBtn.AbsolutePosition and Rect.new(
+            friendDropdownBtn.AbsolutePosition.X,
+            friendDropdownBtn.AbsolutePosition.Y,
+            friendDropdownBtn.AbsolutePosition.X + friendDropdownBtn.AbsoluteSize.X,
+            friendDropdownBtn.AbsolutePosition.Y + friendDropdownBtn.AbsoluteSize.Y
+        )
+        local targetRect = targetDropdownBtn.AbsolutePosition and Rect.new(
+            targetDropdownBtn.AbsolutePosition.X,
+            targetDropdownBtn.AbsolutePosition.Y,
+            targetDropdownBtn.AbsolutePosition.X + targetDropdownBtn.AbsoluteSize.X,
+            targetDropdownBtn.AbsolutePosition.Y + targetDropdownBtn.AbsoluteSize.Y
+        )
+        if friendRect and not friendRect:Contains(mousePos) and friendDropdownList.Visible then
+            friendDropdownList.Visible = false
+        end
+        if targetRect and not targetRect:Contains(mousePos) and targetDropdownList.Visible then
+            targetDropdownList.Visible = false
+        end
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(leaving)
+    local name = leaving.Name
+    local idx = tableFind(friends, name)
+    if idx then
+        table.remove(friends, idx)
+        local autoIdx = tableFind(tmkAutoAdded, name)
+        if autoIdx then table.remove(tmkAutoAdded, autoIdx) end
+    end
+    idx = tableFind(targets, name)
+    if idx then table.remove(targets, idx) end
+    updateFriendDisplay()
+    updateTargetDisplay()
+    refreshAllDropdowns()
+end)
+
+-- Initialize
+updateMultiplierDisplay(1)
+refreshAllDropdowns()
+updateFriendDisplay()
+updateTargetDisplay()
+setAutoWhitelist(false)
+
+print("ULTRA FAST Kill Aura loaded – attacks every frame with multiplier spam")
