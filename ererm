@@ -1,0 +1,343 @@
+--[[
+    Single-Target Spam Hit - ULTRA FAST
+    - Attacks every frame (RenderStepped)
+    - Partial name matching (username or display name)
+    - Multiplier spams remote multiple times per frame
+    - Draggable, compact GUI
+]]
+
+-- Services
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+
+-- Remote
+local CombatRF = ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Services"):WaitForChild("CombatService"):WaitForChild("RF"):WaitForChild("Hit")
+
+local localPlayer = Players.LocalPlayer
+
+-- State
+local spamActive = false
+local hitMultiplier = 1
+local targetPlayer = nil
+local targetNameInput = ""
+
+-- Helper: normalize for comparison
+local function normalize(str)
+    return str:lower():gsub("%s+", "")
+end
+
+-- Update target based on text input (partial match)
+local function updateTarget()
+    if targetNameInput == "" then
+        targetPlayer = nil
+        if targetLabel then targetLabel.Text = "Selected: None" end
+        return
+    end
+
+    local inputNorm = normalize(targetNameInput)
+    local bestMatch = nil
+
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= localPlayer then
+            local nameNorm = normalize(plr.Name)
+            local displayNorm = normalize(plr.DisplayName)
+            if nameNorm:find(inputNorm, 1, true) or displayNorm:find(inputNorm, 1, true) then
+                bestMatch = plr
+                break
+            end
+        end
+    end
+
+    targetPlayer = bestMatch
+    if targetLabel then
+        if bestMatch then
+            targetLabel.Text = "Selected: " .. bestMatch.Name .. " (" .. bestMatch.DisplayName .. ")"
+        else
+            targetLabel.Text = "Selected: None (no match)"
+        end
+    end
+end
+
+-- Attack function (called every frame)
+local function attack()
+    if not spamActive then return end
+    if not targetPlayer then return end
+
+    local char = targetPlayer.Character
+    if not char then return end
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if not hum or hum.Health <= 0 then return end
+
+    for _ = 1, hitMultiplier do
+        pcall(function()
+            CombatRF:InvokeServer(hum)
+        end)
+    end
+end
+
+-- RenderStepped connection
+local attackConnection = nil
+local function setSpamActive(active)
+    spamActive = active
+    if attackConnection then
+        attackConnection:Disconnect()
+        attackConnection = nil
+    end
+    if active then
+        attackConnection = RunService.RenderStepped:Connect(attack)
+    end
+end
+
+-- ========== GUI CREATION (compact & draggable) ==========
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "SpamHitGUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = (gethui and gethui()) or game:GetService("CoreGui") or localPlayer.PlayerGui
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 280, 0, 180)  -- small
+mainFrame.Position = UDim2.new(0.5, -140, 0.5, -90)
+mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+mainFrame.BackgroundTransparency = 0.05
+mainFrame.BorderSizePixel = 0
+mainFrame.ClipsDescendants = true
+mainFrame.Parent = screenGui
+
+local corner = Instance.new("UICorner", mainFrame)
+corner.CornerRadius = UDim.new(0, 10)
+
+-- Title bar (draggable)
+local titleBar = Instance.new("Frame", mainFrame)
+titleBar.Size = UDim2.new(1, 0, 0, 28)
+titleBar.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+titleBar.BorderSizePixel = 0
+local titleCorner = Instance.new("UICorner", titleBar)
+titleCorner.CornerRadius = UDim.new(0, 10)
+
+local titleLabel = Instance.new("TextLabel", titleBar)
+titleLabel.Size = UDim2.new(1, -50, 1, 0)
+titleLabel.Position = UDim2.new(0, 10, 0, 0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "Spam Hit"
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.TextSize = 13
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Minimize button
+local minimizeBtn = Instance.new("TextButton", titleBar)
+minimizeBtn.Size = UDim2.new(0, 24, 0, 24)
+minimizeBtn.Position = UDim2.new(1, -28, 0.5, -12)
+minimizeBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+minimizeBtn.Text = "−"
+minimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+minimizeBtn.TextSize = 18
+minimizeBtn.Font = Enum.Font.GothamBold
+minimizeBtn.BorderSizePixel = 0
+local minCorner = Instance.new("UICorner", minimizeBtn)
+minCorner.CornerRadius = UDim.new(0, 5)
+
+local content = Instance.new("Frame", mainFrame)
+content.Name = "Content"
+content.Size = UDim2.new(1, 0, 1, -28)
+content.Position = UDim2.new(0, 0, 0, 28)
+content.BackgroundTransparency = 1
+content.ClipsDescendants = true
+
+-- Dragging logic
+local dragging = false
+local dragStart = nil
+local frameStart = nil
+
+local function clampFrame(pos)
+    local screenSize = screenGui.AbsoluteSize
+    if screenSize.X == 0 then screenSize = workspace.CurrentCamera.ViewportSize end
+    local frameSize = mainFrame.AbsoluteSize
+    local x = math.clamp(pos.X.Offset, 0, screenSize.X - frameSize.X)
+    local y = math.clamp(pos.Y.Offset, 0, screenSize.Y - frameSize.Y)
+    return UDim2.new(0, x, 0, y)
+end
+
+titleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        frameStart = mainFrame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        local newPos = UDim2.new(0, frameStart.X.Offset + delta.X, 0, frameStart.Y.Offset + delta.Y)
+        mainFrame.Position = clampFrame(newPos)
+    end
+end)
+
+-- Minimize / restore
+local minimized = false
+local originalSize = mainFrame.Size
+minimizeBtn.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    if minimized then
+        TweenService:Create(mainFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            Size = UDim2.new(originalSize.X.Scale, originalSize.X.Offset, 0, 28)
+        }):Play()
+        content.Visible = false
+        minimizeBtn.Text = "+"
+    else
+        TweenService:Create(mainFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            Size = originalSize
+        }):Play()
+        content.Visible = true
+        minimizeBtn.Text = "−"
+    end
+end)
+
+-- ========== UI ELEMENTS ==========
+local padding = 10
+local y = 10
+
+-- Spam Hit Toggle Button
+local toggleBtn = Instance.new("TextButton", content)
+toggleBtn.Size = UDim2.new(1, -padding*2, 0, 36)
+toggleBtn.Position = UDim2.new(0, padding, 0, y)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+toggleBtn.Text = "Spam Hit: OFF"
+toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleBtn.TextSize = 13
+toggleBtn.Font = Enum.Font.GothamBold
+toggleBtn.BorderSizePixel = 0
+local toggleCorner = Instance.new("UICorner", toggleBtn)
+toggleCorner.CornerRadius = UDim.new(0, 6)
+y = y + 36 + 8
+
+-- Player Name TextBox
+local inputBox = Instance.new("TextBox", content)
+inputBox.Size = UDim2.new(1, -padding*2, 0, 32)
+inputBox.Position = UDim2.new(0, padding, 0, y)
+inputBox.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+inputBox.Text = ""
+inputBox.PlaceholderText = "Player name (partial)"
+inputBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+inputBox.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
+inputBox.TextSize = 12
+inputBox.Font = Enum.Font.Gotham
+inputBox.BorderSizePixel = 0
+local boxCorner = Instance.new("UICorner", inputBox)
+boxCorner.CornerRadius = UDim.new(0, 6)
+y = y + 32 + 6
+
+-- Selected Player Label
+local targetLabel = Instance.new("TextLabel", content)
+targetLabel.Size = UDim2.new(1, -padding*2, 0, 22)
+targetLabel.Position = UDim2.new(0, padding, 0, y)
+targetLabel.BackgroundTransparency = 1
+targetLabel.Text = "Selected: None"
+targetLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+targetLabel.TextSize = 11
+targetLabel.Font = Enum.Font.Gotham
+targetLabel.TextXAlignment = Enum.TextXAlignment.Left
+y = y + 22 + 8
+
+-- Hit Multiplier Slider
+local multLabel = Instance.new("TextLabel", content)
+multLabel.Size = UDim2.new(1, -padding*2, 0, 16)
+multLabel.Position = UDim2.new(0, padding, 0, y)
+multLabel.BackgroundTransparency = 1
+multLabel.Text = "Hit Multiplier: 1"
+multLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+multLabel.TextSize = 11
+multLabel.Font = Enum.Font.Gotham
+multLabel.TextXAlignment = Enum.TextXAlignment.Left
+y = y + 18
+
+local sliderFrame = Instance.new("Frame", content)
+sliderFrame.Size = UDim2.new(1, -padding*2, 0, 20)
+sliderFrame.Position = UDim2.new(0, padding, 0, y)
+sliderFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+sliderFrame.BorderSizePixel = 0
+local sliderCorner = Instance.new("UICorner", sliderFrame)
+sliderCorner.CornerRadius = UDim.new(0, 10)
+
+local sliderFill = Instance.new("Frame", sliderFrame)
+sliderFill.Size = UDim2.new(0.05, 0, 1, 0)
+sliderFill.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+sliderFill.BorderSizePixel = 0
+local fillCorner = Instance.new("UICorner", sliderFill)
+fillCorner.CornerRadius = UDim.new(0, 10)
+
+local sliderButton = Instance.new("TextButton", sliderFrame)
+sliderButton.Size = UDim2.new(0, 18, 0, 18)
+sliderButton.Position = UDim2.new(0.05, -9, 0.5, -9)
+sliderButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+sliderButton.Text = ""
+sliderButton.BorderSizePixel = 0
+local btnCorner = Instance.new("UICorner", sliderButton)
+btnCorner.CornerRadius = UDim.new(1, 0)
+
+-- Slider logic
+local function updateMultiplier(value)
+    local percent = (value - 1) / 19
+    sliderFill.Size = UDim2.new(percent, 0, 1, 0)
+    sliderButton.Position = UDim2.new(percent, -9, 0.5, -9)
+    multLabel.Text = "Hit Multiplier: " .. value
+    hitMultiplier = value
+end
+
+local sliderActive = false
+sliderButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        sliderActive = true
+    end
+end)
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        sliderActive = false
+    end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if sliderActive and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local framePos = sliderFrame.AbsolutePosition.X
+        local frameWidth = sliderFrame.AbsoluteSize.X
+        local mouseX = input.Position.X
+        local percent = math.clamp((mouseX - framePos) / frameWidth, 0, 1)
+        local value = math.floor(percent * 19 + 1)
+        updateMultiplier(value)
+    end
+end)
+
+-- Toggle button logic
+toggleBtn.MouseButton1Click:Connect(function()
+    local newState = not spamActive
+    setSpamActive(newState)
+    toggleBtn.Text = newState and "Spam Hit: ON" or "Spam Hit: OFF"
+    toggleBtn.BackgroundColor3 = newState and Color3.fromRGB(150, 0, 0) or Color3.fromRGB(60, 60, 70)
+end)
+
+-- TextBox input handler
+inputBox:GetPropertyChangedSignal("Text"):Connect(function()
+    targetNameInput = inputBox.Text
+    updateTarget()
+end)
+
+-- Update target when players join/leave
+local function onPlayerListChanged()
+    updateTarget()
+end
+Players.PlayerAdded:Connect(onPlayerListChanged)
+Players.PlayerRemoving:Connect(onPlayerListChanged)
+
+-- Initialize
+updateMultiplier(1)
+updateTarget()
+print("Spam Hit loaded – target a single player, toggle ON, and watch the spam!")
